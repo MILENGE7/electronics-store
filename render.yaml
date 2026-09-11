@@ -10,7 +10,9 @@ services:
     startCommand: npm start
     envVars:
       - key: DATABASE_URL
-        sync: false # paste your Neon connection string here after creating it
+        sync: false # paste your Neon POOLED connection string here (used by the running app)
+      - key: DIRECT_URL
+        sync: false # paste your Neon DIRECT (non-pooled) connection string here (used by prisma migrate deploy in the build step)
       - key: JWT_SECRET
         generateValue: true # Render generates a secure random value automatically
       - key: PAYSTACK_SECRET_KEY
