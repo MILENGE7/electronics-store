@@ -1,6 +1,12 @@
 import axios from "axios";
 
-const api = axios.create({ baseURL: "/api" });
+// In local dev, Vite proxies relative "/api" requests to the backend (see
+// vite.config.js). In production the frontend and backend are typically on
+// different origins/hosts, so VITE_API_URL must point at the deployed
+// backend's full URL, e.g. "https://your-api.onrender.com/api".
+const baseURL = import.meta.env.VITE_API_URL || "/api";
+
+const api = axios.create({ baseURL });
 
 // Attach the JWT (if present) to every request
 api.interceptors.request.use((config) => {

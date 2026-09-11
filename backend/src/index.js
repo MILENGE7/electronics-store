@@ -1,5 +1,4 @@
 require("dotenv").config();
-const path = require("path");
 const express = require("express");
 const cors = require("cors");
 
@@ -15,18 +14,6 @@ const app = express();
 
 app.use(cors({ origin: process.env.CLIENT_URL }));
 app.use(express.json());
-
-// Serves uploaded product images (see middleware/upload.js). Swap for cloud
-// storage in production. nosniff stops a browser from executing a
-// mislabeled upload (e.g. as HTML/SVG) regardless of its Content-Type.
-app.use(
-  "/uploads",
-  (req, res, next) => {
-    res.setHeader("X-Content-Type-Options", "nosniff");
-    next();
-  },
-  express.static(path.join(__dirname, "uploads"))
-);
 
 app.get("/health", (req, res) => res.json({ status: "ok" }));
 
