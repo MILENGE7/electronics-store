@@ -91,7 +91,7 @@ model Order {
   status            OrderStatus @default(PENDING)
   total             Decimal     @db.Decimal(12, 2)
   shippingAddress   Json
-  paymentReference  String?
+  paymentReference  String?     @unique
   paid              Boolean     @default(false)
   items             OrderItem[]
   createdAt         DateTime    @default(now())

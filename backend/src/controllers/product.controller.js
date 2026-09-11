@@ -1,5 +1,53 @@
 const prisma = require("../config/db");
 
+// Whitelists and lightly validates the fields an admin may set on a product.
+// Used by both createProduct (partial: false — all required fields must be
+// present) and updateProduct (partial: true — only touch what's provided).
+// Forwarding req.body straight to Prisma would let any unexpected field
+// through and let malformed price/stock values surface as an opaque 500
+// instead of a 400.
+function sanitizeProductInput(body, { partial = false } = {}) {
+  const data = {};
+
+  for (const field of ["name", "description", "brand", "categoryId"]) {
+    if (body[field] !== undefined) data[field] = body[field];
+  }
+
+  if (body.price !== undefined) {
+    const price = Number(body.price);
+    if (Number.isNaN(price) || price < 0) {
+      throw Object.assign(new Error("price must be a non-negative number"), { status: 400 });
+    }
+    data.price = price;
+  }
+
+  if (body.stock !== undefined) {
+    const stock = Number(body.stock);
+    if (!Number.isInteger(stock) || stock < 0) {
+      throw Object.assign(new Error("stock must be a non-negative integer"), { status: 400 });
+    }
+    data.stock = stock;
+  }
+
+  if (body.images !== undefined) {
+    data.images = Array.isArray(body.images) ? body.images : [];
+  }
+
+  if (body.isActive !== undefined) {
+    data.isActive = Boolean(body.isActive);
+  }
+
+  if (!partial) {
+    for (const required of ["name", "description", "price", "stock", "categoryId"]) {
+      if (data[required] === undefined) {
+        throw Object.assign(new Error(`${required} is required`), { status: 400 });
+      }
+    }
+  }
+
+  return data;
+}
+
 // Public: list products with optional filters (category, search, price range) + pagination
 async function listProducts(req, res, next) {
   try {
@@ -47,10 +95,9 @@ async function getProduct(req, res, next) {
 // Admin: create product
 async function createProduct(req, res, next) {
   try {
-    const { name, description, price, stock, images, brand, categoryId } = req.body;
-    const product = await prisma.product.create({
-      data: { name, description, price, stock, images: images || [], brand, categoryId },
-    });
+    const data = sanitizeProductInput(req.body);
+    if (data.images === undefined) data.images = [];
+    const product = await prisma.product.create({ data });
     res.status(201).json(product);
   } catch (err) {
     next(err);
@@ -60,10 +107,11 @@ async function createProduct(req, res, next) {
 // Admin: update product
 async function updateProduct(req, res, next) {
   try {
-    const product = await prisma.product.update({
-      where: { id: req.params.id },
-      data: req.body,
-    });
+    const data = sanitizeProductInput(req.body, { partial: true });
+    if (Object.keys(data).length === 0) {
+      return res.status(400).json({ error: "Nothing to update" });
+    }
+    const product = await prisma.product.update({ where: { id: req.params.id }, data });
     res.json(product);
   } catch (err) {
     next(err);

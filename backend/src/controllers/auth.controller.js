@@ -93,8 +93,18 @@ async function verifyLogin2FA(req, res, next) {
 
 // Begins 2FA enrollment: generates a secret (not yet active) and a QR code
 // the admin scans in an authenticator app (Google Authenticator, Authy, etc.).
+// Requires the current password so a stolen/leaked session JWT alone can't be
+// used to silently rotate the secret (which also immediately flips
+// twoFactorEnabled to false, weakening an already-enrolled account).
 async function setup2FA(req, res, next) {
   try {
+    const { password } = req.body;
+    if (!password) return res.status(400).json({ error: "Current password is required" });
+
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) return res.status(401).json({ error: "Incorrect password" });
+
     const secret = speakeasy.generateSecret({
       name: `Electronics Store (${req.user.email})`,
     });
@@ -133,8 +143,27 @@ async function confirm2FA(req, res, next) {
   }
 }
 
+// Requires both the current password and a valid TOTP code — proof of both
+// factors being removed, not just possession of a (possibly stolen) session JWT.
 async function disable2FA(req, res, next) {
   try {
+    const { password, token } = req.body;
+    if (!password) return res.status(400).json({ error: "Current password is required" });
+    if (!token) return res.status(400).json({ error: "Authentication code is required" });
+
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) return res.status(401).json({ error: "Incorrect password" });
+
+    const valid = speakeasy.totp.verify({
+      secret: user.twoFactorSecret,
+      encoding: "base32",
+      token,
+      window: 1,
+    });
+    if (!valid) return res.status(401).json({ error: "Invalid authentication code" });
+
     await prisma.user.update({
       where: { id: req.user.id },
       data: { twoFactorEnabled: false, twoFactorSecret: null },
@@ -149,7 +178,7 @@ async function me(req, res, next) {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
-      select: { id: true, email: true, name: true, role: true, twoFactorEnabled: true, addresses: true },
+      select: { id: true, email: true, name: true, role: true, twoFactorEnabled: true, addresses: true, createdAt: true },
     });
     res.json(user);
   } catch (err) {
@@ -157,4 +186,48 @@ async function me(req, res, next) {
   }
 }
 
-module.exports = { register, login, verifyLogin2FA, setup2FA, confirm2FA, disable2FA, me };
+// Customer self-service profile update — name and/or email only (both
+// already exist on User; nothing new is being invented here). Always scoped
+// to req.user.id, so a customer can only ever update their own record.
+async function updateProfile(req, res, next) {
+  try {
+    const { name, email } = req.body;
+    const data = {};
+
+    if (name !== undefined) {
+      const trimmed = String(name).trim();
+      if (!trimmed) return res.status(400).json({ error: "Name cannot be empty" });
+      data.name = trimmed;
+    }
+
+    if (email !== undefined) {
+      const trimmedEmail = String(email).trim().toLowerCase();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(trimmedEmail)) {
+        return res.status(400).json({ error: "Please enter a valid email address" });
+      }
+
+      const current = await prisma.user.findUnique({ where: { id: req.user.id }, select: { email: true } });
+      if (trimmedEmail !== current.email) {
+        const existing = await prisma.user.findUnique({ where: { email: trimmedEmail } });
+        if (existing) return res.status(409).json({ error: "Email already in use" });
+      }
+      data.email = trimmedEmail;
+    }
+
+    if (Object.keys(data).length === 0) {
+      return res.status(400).json({ error: "Nothing to update" });
+    }
+
+    const updated = await prisma.user.update({
+      where: { id: req.user.id },
+      data,
+      select: { id: true, email: true, name: true, role: true, twoFactorEnabled: true, addresses: true, createdAt: true },
+    });
+    res.json(updated);
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { register, login, verifyLogin2FA, setup2FA, confirm2FA, disable2FA, me, updateProfile };

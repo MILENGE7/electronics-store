@@ -8,7 +8,13 @@ function requireAuth(req, res, next) {
   }
   try {
     const token = header.split(" ")[1];
-    req.user = verifyToken(token);
+    const decoded = verifyToken(token);
+    // Pending 2FA tokens (issued after password check, before TOTP) are only
+    // valid against /auth/2fa/login-verify — never as a general session token.
+    if (decoded.purpose === "2fa-pending") {
+      return res.status(401).json({ error: "Invalid or expired token" });
+    }
+    req.user = decoded;
     next();
   } catch (err) {
     return res.status(401).json({ error: "Invalid or expired token" });
