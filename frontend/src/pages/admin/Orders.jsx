@@ -6,21 +6,47 @@ const STATUSES = ["PENDING", "PROCESSING", "SHIPPED", "DELIVERED", "CANCELLED", 
 
 export default function AdminOrders() {
   const [orders, setOrders] = useState([]);
+  const [loadError, setLoadError] = useState("");
+  const [statusError, setStatusError] = useState("");
 
   function loadOrders() {
-    api.get("/orders").then((res) => setOrders(res.data));
+    setLoadError("");
+    return api
+      .get("/orders")
+      .then((res) => setOrders(res.data))
+      .catch(() => setLoadError("Unable to load orders."));
   }
 
   useEffect(loadOrders, []);
 
   async function updateStatus(id, status) {
-    await api.patch(`/orders/${id}/status`, { status });
-    loadOrders();
+    setStatusError("");
+    try {
+      await api.patch(`/orders/${id}/status`, { status });
+      loadOrders();
+    } catch (err) {
+      // Re-fetch even on failure so the <select> snaps back to the real
+      // server-side status instead of showing the rejected value as if it
+      // had taken effect.
+      setStatusError(err.response?.data?.error || "Could not update order status");
+      loadOrders();
+    }
   }
 
   return (
     <div className="page-main">
       <h1>Manage Orders</h1>
+
+      {loadError && (
+        <p className="form-error">
+          {loadError}{" "}
+          <button type="button" className="btn btn-outline" onClick={loadOrders} style={{ marginLeft: "0.5rem" }}>
+            Try Again
+          </button>
+        </p>
+      )}
+      {statusError && <p className="form-error">{statusError}</p>}
+
       <div className="cart-list">
         {orders.map((o) => (
           <div key={o.id} className="cart-row" style={{ flexWrap: "wrap" }}>

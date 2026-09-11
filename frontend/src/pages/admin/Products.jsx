@@ -11,18 +11,27 @@ export default function AdminProducts() {
   const [form, setForm] = useState(emptyForm);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState("");
+  const [loadError, setLoadError] = useState("");
 
   function loadProducts() {
-    api.get("/products", { params: { limit: 100 } }).then((res) => setProducts(res.data.products));
+    return api
+      .get("/products", { params: { limit: 100 } })
+      .then((res) => setProducts(res.data.products))
+      .catch(() => setLoadError("Unable to load products."));
   }
   function loadCategories() {
-    api.get("/categories").then((res) => setCategories(res.data));
+    return api
+      .get("/categories")
+      .then((res) => setCategories(res.data))
+      .catch(() => setLoadError("Unable to load categories."));
   }
 
-  useEffect(() => {
-    loadProducts();
-    loadCategories();
-  }, []);
+  function loadAll() {
+    setLoadError("");
+    Promise.all([loadProducts(), loadCategories()]);
+  }
+
+  useEffect(loadAll, []);
 
   async function handleImageSelect(e) {
     const file = e.target.files[0];
@@ -48,19 +57,39 @@ export default function AdminProducts() {
 
   async function handleCreate(e) {
     e.preventDefault();
-    await api.post("/products", { ...form, price: Number(form.price), stock: Number(form.stock) });
-    setForm(emptyForm);
-    loadProducts();
+    setError("");
+    try {
+      await api.post("/products", { ...form, price: Number(form.price), stock: Number(form.stock) });
+      setForm(emptyForm);
+      loadProducts();
+    } catch (err) {
+      setError(err.response?.data?.error || "Could not create product");
+    }
   }
 
-  async function handleDelete(id) {
-    await api.delete(`/products/${id}`);
-    loadProducts();
+  async function handleDelete(id, name) {
+    if (!window.confirm(`Delete "${name}"? This cannot be undone.`)) return;
+    setError("");
+    try {
+      await api.delete(`/products/${id}`);
+      loadProducts();
+    } catch (err) {
+      setError(err.response?.data?.error || "Could not delete product");
+    }
   }
 
   return (
     <div className="page-main">
       <h1>Manage Products</h1>
+
+      {loadError && (
+        <p className="form-error">
+          {loadError}{" "}
+          <button type="button" className="btn btn-outline" onClick={loadAll} style={{ marginLeft: "0.5rem" }}>
+            Try Again
+          </button>
+        </p>
+      )}
 
       <form onSubmit={handleCreate} className="auth-form" style={{ maxWidth: "480px", marginBottom: "2.5rem" }}>
         {error && <p className="form-error">{error}</p>}
@@ -110,7 +139,7 @@ export default function AdminProducts() {
               <td>{p.name}</td>
               <td className="price">{formatRWF(p.price)}</td>
               <td>{p.stock}</td>
-              <td><button onClick={() => handleDelete(p.id)} className="btn btn-outline">Delete</button></td>
+              <td><button onClick={() => handleDelete(p.id, p.name)} className="btn btn-outline">Delete</button></td>
             </tr>
           ))}
         </tbody>
