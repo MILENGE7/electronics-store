@@ -1,0 +1,54 @@
+/* =========================================
+   SKELETON LOADERS
+========================================= */
+
+.skeleton-card {
+  pointer-events: none;
+}
+
+.skeleton-shimmer {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  background: #0c2038;
+}
+
+.skeleton-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.07), transparent);
+  animation: skeleton-sweep 1.6s ease-in-out infinite;
+}
+
+.skeleton-line {
+  border-radius: 4px;
+}
+
+@keyframes skeleton-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-shimmer::after {
+    animation: none;
+  }
+}
+
+.product-detail-skeleton {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3rem;
+}
+
+@media (max-width: 760px) {
+  .product-detail-skeleton {
+    grid-template-columns: 1fr;
+    gap: 1.6rem;
+  }
+}

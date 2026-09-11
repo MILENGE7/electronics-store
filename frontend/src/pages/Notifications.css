@@ -1,0 +1,240 @@
+/* =========================================
+   NOTIFICATIONS
+========================================= */
+
+.notifications-page {
+  max-width: 760px;
+}
+
+.notifications-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.6rem;
+}
+
+.notifications-header h1 {
+  color: white;
+  font-size: 1.6rem;
+  margin: 0;
+}
+
+.notifications-subtitle {
+  color: var(--silver);
+  font-size: 0.88rem;
+  margin: 0.3rem 0 0;
+}
+
+.state-error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+  padding: 2.4rem 0;
+}
+
+.state-error p {
+  color: var(--silver);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.notifications-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 4rem 0;
+}
+
+.notifications-empty-icon {
+  display: inline-flex;
+  color: var(--signal-bright);
+  margin-bottom: 0.4rem;
+}
+
+.notifications-empty h2 {
+  color: white;
+  font-size: 1.3rem;
+  margin: 0;
+}
+
+.notifications-empty p {
+  color: var(--silver);
+  margin: 0;
+}
+
+.notifications-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.2rem;
+}
+
+.notifications-filter-btn {
+  padding: 0.4rem 0.9rem;
+  border-radius: 20px;
+  border: 1px solid var(--hairline);
+  background: transparent;
+  color: var(--silver);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+
+.notifications-filter-btn:hover {
+  border-color: var(--signal);
+  color: white;
+}
+
+.notifications-filter-btn.active {
+  background: var(--signal);
+  border-color: var(--signal);
+  color: white;
+}
+
+.notifications-filter-btn:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
+}
+
+.notifications-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  margin: 0;
+  padding: 0;
+}
+
+.notification-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.9rem;
+  padding: 1rem 1.2rem;
+
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  background: var(--ink-soft);
+}
+
+.notification-card.unread {
+  border-color: var(--signal-dim);
+  background: linear-gradient(180deg, var(--signal-soft), var(--ink-soft) 60%);
+}
+
+.notification-icon {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
+  color: var(--silver);
+}
+
+.notification-icon.icon-success {
+  color: #35c26a;
+}
+
+.notification-icon.icon-warning {
+  color: #e0a52c;
+}
+
+.notification-icon.icon-info {
+  color: #35a0e0;
+}
+
+.notification-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.notification-title-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.notification-title-row h3 {
+  color: white;
+  font-size: 0.98rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+.notification-dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--signal-bright);
+}
+
+.notification-message {
+  color: var(--silver);
+  font-size: 0.88rem;
+  margin: 0.3rem 0 0;
+  overflow-wrap: anywhere;
+}
+
+.notification-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.9rem;
+  margin-top: 0.7rem;
+}
+
+.notification-timestamp {
+  color: var(--silver-soft);
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+}
+
+.notification-action {
+  color: var(--signal-bright);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.notification-mark-read {
+  background: transparent;
+  border: none;
+  color: var(--silver);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+}
+
+.notification-mark-read:hover {
+  color: white;
+  text-decoration: underline;
+}
+
+.notification-action:focus-visible,
+.notification-mark-read:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
+}
+
+@media (max-width: 480px) {
+  .notifications-header {
+    flex-direction: column;
+    gap: 0.7rem;
+  }
+
+  .notification-card {
+    padding: 0.9rem;
+    gap: 0.7rem;
+  }
+
+  .notification-meta {
+    gap: 0.6rem;
+  }
+}

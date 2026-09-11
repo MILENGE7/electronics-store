@@ -19,7 +19,7 @@ export default function Login() {
         setPendingToken(result.pendingToken);
         return;
       }
-      navigate("/");
+      navigate(result?.user?.role === "ADMIN" ? "/admin" : "/");
     } catch (err) {
       setError(err.response?.data?.error || "Login failed");
     }
@@ -38,29 +38,35 @@ export default function Login() {
 
   if (pendingToken) {
     return (
-      <div className="page-main auth-page">
-        <form onSubmit={handleVerify2FA} className="auth-form">
-          <h1>Two-factor verification</h1>
-          <p className="auth-sub">Enter the 6-digit code from your authenticator app.</p>
-          {error && <p className="form-error">{error}</p>}
-          <input placeholder="123456" value={totpCode} onChange={(e) => setTotpCode(e.target.value)} required />
-          <button type="submit" className="btn btn-primary">Verify</button>
-        </form>
+      <div className="auth-bg">
+        <img src="/logo.webp?v=fktrading1" alt="" aria-hidden="true" className="auth-watermark" />
+        <div className="page-main auth-page">
+          <form onSubmit={handleVerify2FA} className="auth-form">
+            <h1>Two-factor verification</h1>
+            <p className="auth-sub">Enter the 6-digit code from your authenticator app.</p>
+            {error && <p className="form-error">{error}</p>}
+            <input placeholder="123456" value={totpCode} onChange={(e) => setTotpCode(e.target.value)} required />
+            <button type="submit" className="btn btn-primary">Verify</button>
+          </form>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="page-main auth-page">
-      <form onSubmit={handleSubmit} className="auth-form">
-        <h1>Sign in</h1>
-        {error && <p className="form-error">{error}</p>}
-        <input placeholder="Email" type="email" value={form.email}
-          onChange={(e) => setForm({ ...form, email: e.target.value })} required />
-        <input placeholder="Password" type="password" value={form.password}
-          onChange={(e) => setForm({ ...form, password: e.target.value })} required />
-        <button type="submit" className="btn btn-primary">Sign in</button>
-      </form>
+    <div className="auth-bg">
+      <img src="/logo.webp?v=fktrading1" alt="" aria-hidden="true" className="auth-watermark" />
+      <div className="page-main auth-page">
+        <form onSubmit={handleSubmit} className="auth-form">
+          <h1>Sign in</h1>
+          {error && <p className="form-error">{error}</p>}
+          <input placeholder="Email" type="email" value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })} required />
+          <input placeholder="Password" type="password" value={form.password}
+            onChange={(e) => setForm({ ...form, password: e.target.value })} required />
+          <button type="submit" className="btn btn-primary">Sign in</button>
+        </form>
+      </div>
     </div>
   );
 }

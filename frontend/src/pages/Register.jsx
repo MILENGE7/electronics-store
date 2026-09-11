@@ -19,18 +19,21 @@ export default function Register() {
   }
 
   return (
-    <div className="page-main auth-page">
-      <form onSubmit={handleSubmit} className="auth-form">
-        <h1>Create account</h1>
-        {error && <p className="form-error">{error}</p>}
-        <input placeholder="Name" value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-        <input placeholder="Email" type="email" value={form.email}
-          onChange={(e) => setForm({ ...form, email: e.target.value })} required />
-        <input placeholder="Password" type="password" value={form.password}
-          onChange={(e) => setForm({ ...form, password: e.target.value })} required />
-        <button type="submit" className="btn btn-primary">Create account</button>
-      </form>
+    <div className="auth-bg">
+      <img src="/logo.webp?v=fktrading1" alt="" aria-hidden="true" className="auth-watermark" />
+      <div className="page-main auth-page">
+        <form onSubmit={handleSubmit} className="auth-form">
+          <h1>Create account</h1>
+          {error && <p className="form-error">{error}</p>}
+          <input placeholder="Name" value={form.name}
+            onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+          <input placeholder="Email" type="email" value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })} required />
+          <input placeholder="Password" type="password" value={form.password}
+            onChange={(e) => setForm({ ...form, password: e.target.value })} required />
+          <button type="submit" className="btn btn-primary">Create account</button>
+        </form>
+      </div>
     </div>
   );
 }

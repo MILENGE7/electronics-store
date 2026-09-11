@@ -1,0 +1,332 @@
+/* =========================================
+   PRODUCT CARD
+========================================= */
+
+.product-card {
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  overflow: hidden;
+  background: var(--ink-soft);
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+  display: block;
+}
+
+.product-card:hover {
+  transform: translateY(-4px);
+  border-color: var(--signal);
+  box-shadow: 0 18px 34px rgba(2, 11, 24, 0.45);
+}
+
+.product-card:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
+}
+
+.product-card-image {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.product-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.4s ease;
+}
+
+.product-card:hover .product-card-image img {
+  transform: scale(1.06);
+}
+
+.product-card-placeholder {
+  font-family: var(--font-display);
+  font-size: 2.2rem;
+  color: var(--signal);
+  opacity: 0.5;
+}
+
+.wishlist-btn {
+  position: absolute;
+  top: 0.7rem;
+  right: 0.7rem;
+  z-index: 2;
+
+  width: 32px;
+  height: 32px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: #5e6d80;
+
+  box-shadow: 0 4px 10px rgba(2, 11, 24, 0.18);
+
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.wishlist-btn:hover {
+  transform: scale(1.08);
+}
+
+.wishlist-btn:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
+}
+
+.wishlist-btn.active {
+  color: #ff4d67;
+}
+
+.wishlist-btn.wishlist-pop {
+  animation: wishlist-pop 0.32s ease;
+}
+
+@keyframes wishlist-pop {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.35);
+  }
+  60% {
+    transform: scale(0.92);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.product-card-body {
+  padding: 1rem 1.1rem 1.3rem;
+}
+
+.product-card-brand {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--silver);
+  margin: 0 0 0.35rem;
+}
+
+.product-card-name {
+  font-size: 1.02rem;
+  margin-bottom: 0.5rem;
+  color: var(--graphite);
+}
+
+.product-card-price {
+  color: white;
+  font-size: 1rem;
+}
+
+.product-card-add {
+  width: 100%;
+  margin-top: 0.9rem;
+  padding: 0.6rem 0.8rem;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  background: transparent;
+  color: white;
+
+  font-size: 0.82rem;
+  font-weight: 600;
+
+  transition:
+    background 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    transform 0.15s ease;
+}
+
+.product-card-add:hover:not(:disabled) {
+  background: var(--signal);
+  border-color: var(--signal);
+  transform: translateY(-1px);
+}
+
+.product-card-add:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.product-card-add:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
+}
+
+.product-card-add.added {
+  background: #0a7a3d;
+  border-color: #0a7a3d;
+  color: white;
+}
+
+.product-card-add.added svg {
+  animation: check-pop 0.3s ease;
+}
+
+@keyframes check-pop {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.product-card-add:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.rank-badge {
+  position: absolute;
+  top: 0.7rem;
+  left: 0.7rem;
+  z-index: 2;
+
+  background: var(--signal);
+  color: white;
+
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+
+  padding: 0.25rem 0.5rem;
+  border-radius: 6px;
+}
+
+.stock-pill {
+  position: absolute;
+  bottom: 0.6rem;
+  left: 0.6rem;
+  z-index: 2;
+
+  padding: 0.2rem 0.6rem;
+  border-radius: 20px;
+
+  background: rgba(255, 255, 255, 0.92);
+
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.stock-in {
+  color: #0a7a3d;
+}
+
+.stock-low {
+  color: #b5760a;
+}
+
+.stock-out {
+  color: #c0263a;
+}
+
+/* QUICK VIEW / COMPARE (bottom-right corner of the image, opposite the
+   stock pill so nothing collides with the rank badge or wishlist button) */
+
+.product-card-corner-actions {
+  position: absolute;
+  bottom: 0.6rem;
+  right: 0.6rem;
+  z-index: 2;
+
+  display: flex;
+  gap: 0.4rem;
+}
+
+.corner-action-btn {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  color: #5e6d80;
+
+  box-shadow: 0 4px 10px rgba(2, 11, 24, 0.18);
+
+  transition: color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.corner-action-btn:hover {
+  transform: scale(1.08);
+}
+
+.corner-action-btn:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
+}
+
+.corner-action-btn.active {
+  background: var(--signal);
+  color: white;
+}
+
+.compare-limit-toast {
+  position: absolute;
+  bottom: 3rem;
+  right: 0.6rem;
+  z-index: 3;
+  max-width: calc(100% - 1.2rem);
+
+  padding: 0.45rem 0.7rem;
+  border-radius: 8px;
+  background: rgba(5, 15, 30, 0.95);
+  border: 1px solid var(--hairline);
+
+  color: white;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-align: right;
+
+  animation: compare-toast-in 0.15s ease;
+}
+
+@keyframes compare-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 480px) {
+  .corner-action-btn {
+    width: 27px;
+    height: 27px;
+  }
+}

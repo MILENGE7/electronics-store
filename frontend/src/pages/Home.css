@@ -1,75 +1,683 @@
+/* =========================================
+   CATALOG
+========================================= */
+
 .catalog-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1rem;
+  gap: 1.2rem;
   margin-bottom: 1.8rem;
   flex-wrap: wrap;
 }
-.catalog-header h2 {
-  font-size: 1.4rem;
+
+.catalog-title-text {
+  font-size: 1.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
+
+.catalog-controls {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  flex-wrap: wrap;
+}
+
+.catalog-search-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
 .catalog-search {
   min-width: 240px;
+  padding-right: 2.6rem;
 }
+
+.catalog-search-wrap svg {
+  position: absolute;
+  right: 0.9rem;
+  color: var(--silver);
+  pointer-events: none;
+}
+
+.catalog-view-all {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+
+  background: none;
+  border: none;
+  padding: 0;
+
+  color: var(--signal-bright);
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+
+  transition: gap 0.2s ease;
+}
+
+.catalog-view-all:hover {
+  gap: 0.55rem;
+}
+
 .catalog-empty {
   color: var(--silver);
   font-family: var(--font-mono);
   font-size: 0.9rem;
 }
 
+.state-error {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1rem;
+
+  padding: 2.4rem 0;
+}
+
+.state-error p {
+  color: var(--silver);
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+/* =========================================
+   CATALOG TOOLBAR (filters button / count / sort)
+========================================= */
+
+.catalog-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  flex-wrap: wrap;
+
+  margin-bottom: 1.2rem;
+}
+
+.catalog-filters-btn {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+
+  padding: 0.6rem 1rem;
+
+  border: 1px solid var(--hairline);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.02);
+  color: white;
+
+  font-size: 0.88rem;
+  font-weight: 600;
+
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.catalog-filters-btn:hover {
+  border-color: var(--signal);
+  background: var(--signal-soft);
+}
+
+.catalog-filters-badge {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+  background: var(--signal);
+  color: white;
+
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.catalog-result-count {
+  margin: 0;
+  color: var(--silver);
+  font-size: 0.88rem;
+  flex: 1;
+}
+
+.catalog-sort {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+
+  color: var(--silver);
+  font-size: 0.82rem;
+}
+
+.catalog-sort select {
+  padding: 0.5rem 0.7rem;
+  font-size: 0.85rem;
+  color: white;
+  background: #081827;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 8px;
+}
+
+.catalog-sort select:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
+}
+
+/* =========================================
+   FILTER CHIPS
+========================================= */
+
+.filter-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+
+  margin-bottom: 1.4rem;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+
+  padding: 0.4rem 0.8rem;
+
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: var(--signal-soft);
+  color: white;
+
+  font-size: 0.78rem;
+  font-weight: 500;
+
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.filter-chip span {
+  color: var(--signal-bright);
+  font-size: 0.95rem;
+  line-height: 1;
+}
+
+.filter-chip:hover {
+  border-color: var(--signal);
+  background: rgba(8, 120, 255, 0.2);
+}
+
+.filter-chip-clearall {
+  background: none;
+  color: var(--silver);
+  font-weight: 600;
+}
+
+.filter-chip-clearall:hover {
+  color: white;
+  border-color: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+/* =========================================
+   CATALOG LAYOUT (sidebar + results)
+========================================= */
+
+.catalog-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  align-items: start;
+  gap: 1.8rem;
+}
+
+.catalog-sidebar {
+  position: sticky;
+  top: 1.4rem;
+}
+
+.catalog-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.9rem;
+
+  padding: 3rem 0;
+}
+
+.catalog-empty-title {
+  margin: 0;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.catalog-empty-sub {
+  margin: 0;
+  color: var(--silver);
+  font-size: 0.9rem;
+}
+
+/* =========================================
+   PRODUCT GRID
+========================================= */
+
 .product-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.6rem;
+}
+
+/* =========================================
+   TRENDING / BEST SELLERS STRIPS
+========================================= */
+
+.strip-section {
+  border-bottom: 1px solid var(--hairline);
+}
+
+.strip-section-alt {
+  background: var(--ink-soft);
+}
+
+.strip-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 3.4rem 5%;
+}
+
+.strip-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+
+  margin-bottom: 1.6rem;
+}
+
+.section-title {
+  font-size: 1.6rem;
+  color: white;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.section-title-center {
+  text-align: center;
+  margin-bottom: 2.6rem;
+}
+
+.section-sub {
+  margin: 0.3rem 0 0;
+  color: var(--silver);
+  font-size: 0.9rem;
+}
+
+.strip-track {
+  display: flex;
   gap: 1.4rem;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  padding-bottom: 0.3rem;
 }
-.product-card {
-  border: 1px solid var(--hairline);
-  border-radius: 14px;
-  overflow: hidden;
-  background: white;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
-  display: block;
+
+.strip-track::-webkit-scrollbar {
+  display: none;
 }
-.product-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 12px 28px rgba(14, 15, 17, 0.08);
+
+.strip-track .product-card {
+  flex: 0 0 240px;
+  scroll-snap-align: start;
 }
-.product-card-image {
+
+/* =========================================
+   DEAL OF THE WEEK
+========================================= */
+
+.deal-section {
+  background: var(--navy-light);
+  border-bottom: 1px solid var(--hairline);
+}
+
+.deal-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 4rem 5%;
+
+  display: grid;
+  grid-template-columns: 0.9fr 1.1fr;
+  align-items: center;
+  gap: 3rem;
+}
+
+.deal-copy {
+  min-width: 0;
+}
+
+.deal-image {
   aspect-ratio: 1 / 1;
-  background: var(--signal-soft);
+  max-width: 420px;
+
+  background: #ffffff;
+  border-radius: 16px;
+  overflow: hidden;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
 }
-.product-card-image img {
+
+.deal-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-.product-card-placeholder {
-  font-family: var(--font-display);
-  font-size: 2.2rem;
-  color: var(--signal);
-  opacity: 0.5;
-}
-.product-card-body {
-  padding: 0.9rem 1rem 1.1rem;
-}
-.product-card-brand {
+
+.deal-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+
+  margin: 0 0 1rem;
+
+  color: #1683ff;
   font-family: var(--font-mono);
-  font-size: 0.68rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+}
+
+.deal-eyebrow::before {
+  content: "";
+  width: 34px;
+  height: 2px;
+  background: #0878ff;
+}
+
+.deal-title {
+  color: white;
+  font-size: clamp(1.8rem, 3vw, 2.4rem);
+  line-height: 1.1;
+  margin: 0 0 1rem;
+}
+
+.deal-desc {
+  max-width: 520px;
+  margin: 0 0 1.4rem;
+
   color: var(--silver);
-  margin: 0 0 0.3rem;
-}
-.product-card-name {
   font-size: 1rem;
-  margin-bottom: 0.4rem;
+  line-height: 1.65;
+
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
-.product-card-price {
+
+.deal-price {
+  color: white;
+  font-size: 1.5rem;
+  margin: 0 0 1.6rem;
+}
+
+/* =========================================
+   WHY FK TRADING
+========================================= */
+
+.why-section {
+  border-bottom: 1px solid var(--hairline);
+}
+
+.why-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 4rem 5%;
+}
+
+.why-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 1.6rem;
+}
+
+.why-card {
+  text-align: center;
+  padding: 2rem 1.2rem;
+
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  background: var(--ink-soft);
+
+  transition:
+    border-color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.why-card:hover {
+  border-color: var(--signal);
+  transform: translateY(-3px);
+}
+
+.why-card svg {
+  color: #1683ff;
+  margin-bottom: 1rem;
+}
+
+.why-card h3 {
+  color: white;
+  font-size: 1rem;
+  margin: 0 0 0.5rem;
+}
+
+.why-card p {
+  margin: 0;
+  color: var(--silver);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+/* =========================================
+   SHOP BY BRAND
+========================================= */
+
+.brand-section {
+  border-bottom: 1px solid var(--hairline);
+  background: var(--ink-soft);
+}
+
+.brand-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 3.4rem 5%;
+}
+
+.brand-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+  margin-top: 1.4rem;
+}
+
+.brand-chip {
+  padding: 0.7rem 1.4rem;
+
+  border: 1px solid var(--hairline);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.02);
+  color: white;
+
+  font-size: 0.88rem;
+  font-weight: 600;
+
+  transition:
+    border-color 0.2s ease,
+    background 0.2s ease;
+}
+
+.brand-chip:hover {
+  border-color: var(--signal);
+  background: var(--signal-soft);
+}
+
+.brand-chip.active {
+  background: var(--signal);
+  border-color: var(--signal);
+}
+
+/* =========================================
+   CUSTOMER REVIEWS
+========================================= */
+
+.reviews-section {
+  border-bottom: 1px solid var(--hairline);
+}
+
+.reviews-inner {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 4rem 5%;
+}
+
+.reviews-empty {
+  text-align: center;
+}
+
+.reviews-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1.6rem;
+}
+
+.review-card {
+  padding: 1.6rem;
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  background: var(--ink-soft);
+}
+
+.review-stars {
+  display: flex;
+  gap: 0.2rem;
+  margin-bottom: 0.9rem;
+  color: #ffb703;
+}
+
+.review-stars svg.dim {
+  color: #3a4759;
+}
+
+.review-comment {
+  margin: 0 0 1rem;
   color: var(--graphite);
   font-size: 0.95rem;
+  line-height: 1.6;
+  font-style: italic;
+}
+
+.review-meta {
+  margin: 0;
+  color: var(--silver);
+  font-size: 0.8rem;
+}
+
+.review-meta strong {
+  color: white;
+}
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 900px) {
+  .catalog-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .catalog-sidebar {
+    display: none;
+  }
+
+  .catalog-filters-btn {
+    display: inline-flex;
+  }
+
+  .catalog-result-count {
+    order: 1;
+    flex-basis: 100%;
+  }
+
+  .deal-inner {
+    grid-template-columns: 1fr;
+  }
+
+  .deal-image {
+    max-width: 320px;
+    margin: 0 auto;
+  }
+
+  .deal-copy {
+    text-align: center;
+  }
+
+  .deal-eyebrow {
+    justify-content: center;
+  }
+
+  .deal-desc {
+    margin-left: auto;
+    margin-right: auto;
+  }
+}
+
+@media (max-width: 600px) {
+  .catalog-title-text {
+    font-size: 1.3rem;
+  }
+
+  .catalog-toolbar {
+    gap: 0.8rem;
+  }
+
+  .catalog-sort {
+    flex-basis: 100%;
+    justify-content: space-between;
+  }
+
+  .catalog-sort select {
+    flex: 1;
+    max-width: 220px;
+  }
+
+  .filter-chip {
+    font-size: 0.74rem;
+    padding: 0.35rem 0.65rem;
+  }
+
+  .product-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 1rem;
+  }
+
+  .strip-inner,
+  .deal-inner,
+  .why-inner,
+  .brand-inner,
+  .reviews-inner {
+    padding-left: 1.2rem;
+    padding-right: 1.2rem;
+  }
+
+  .strip-track .product-card {
+    flex-basis: 190px;
+  }
+
+  .section-title {
+    font-size: 1.3rem;
+  }
 }

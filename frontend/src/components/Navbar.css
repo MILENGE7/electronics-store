@@ -1,72 +1,500 @@
+/* =========================================
+   FK TRADING NAVBAR
+========================================= */
+
 .nav {
   position: sticky;
   top: 0;
-  z-index: 40;
-  background: rgba(250, 250, 248, 0.9);
-  backdrop-filter: blur(8px);
-  border-bottom: 1px solid var(--hairline);
+  z-index: 100;
+  width: 100%;
+  background: #020b18;
+  color: white;
+  transition: box-shadow 0.25s ease;
 }
-.nav-inner {
-  max-width: 1160px;
+
+.nav.nav-scrolled {
+  box-shadow: 0 8px 30px rgba(2, 11, 24, 0.4);
+}
+
+/* =========================================
+   SERVICE BAR
+========================================= */
+
+.nav-service-bar {
+  max-height: 60px;
+  overflow: hidden;
+
+  border-bottom: 1px solid rgba(148, 163, 184, 0.12);
+  background: #010914;
+
+  transition:
+    max-height 0.25s ease,
+    opacity 0.2s ease,
+    border-color 0.25s ease;
+}
+
+.nav.nav-scrolled .nav-service-bar {
+  max-height: 0;
+  opacity: 0;
+  border-color: transparent;
+}
+
+.nav-service-inner {
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 0.9rem 1.5rem;
+  padding: 0.75rem 5%;
+
   display: flex;
   align-items: center;
-  gap: 2.2rem;
+  justify-content: space-between;
 }
+
+.service-item {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  color: white;
+}
+
+.service-item svg {
+  color: #ffffff;
+  flex-shrink: 0;
+}
+
+.service-item div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.08rem;
+}
+
+.service-item strong {
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.service-item span {
+  color: #a7b2c2;
+  font-size: 0.72rem;
+}
+
+/* =========================================
+   MAIN NAV
+========================================= */
+
+.nav-main {
+  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+  background: #020b18;
+
+  transition:
+    background 0.25s ease,
+    backdrop-filter 0.25s ease;
+}
+
+.nav.nav-scrolled .nav-main {
+  background: rgba(2, 11, 24, 0.88);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.nav-inner {
+  max-width: 1400px;
+  min-height: 96px;
+  margin: 0 auto;
+  padding: 0 5%;
+
+  display: flex;
+  align-items: center;
+  gap: 2.5rem;
+}
+
+/* =========================================
+   MOBILE MENU BUTTON
+========================================= */
+
+.nav-menu-btn {
+  display: none;
+  flex-shrink: 0;
+
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.02);
+  color: white;
+
+  transition: border-color 0.2s ease, background 0.2s ease;
+}
+
+.nav-menu-btn:hover {
+  border-color: var(--signal);
+  background: var(--signal-soft);
+}
+
+/* =========================================
+   LOGO
+========================================= */
+
 .nav-logo {
   display: flex;
   align-items: center;
+  flex-shrink: 0;
 }
+
 .nav-logo-img {
-  height: 34px;
-  width: auto;
-  display: block;
+  width: 74px;
+  height: 74px;
+  object-fit: contain;
+  border-radius: 10px;
 }
+
+/* =========================================
+   NAV LINKS
+========================================= */
+
 .nav-links {
   display: flex;
-  gap: 1.5rem;
-  flex: 1;
-  font-size: 0.92rem;
-  color: var(--silver);
+  align-items: center;
+  gap: 2.2rem;
+  margin-left: auto;
 }
+
+.nav-links a {
+  position: relative;
+  color: #f5f7fa;
+  font-size: 0.95rem;
+  font-weight: 500;
+  white-space: nowrap;
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.nav-links a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -6px;
+  width: 0;
+  height: 2px;
+  background: #1683ff;
+  transition: width 0.2s ease;
+}
+
 .nav-links a:hover {
-  color: var(--graphite);
+  color: #1683ff;
 }
+
+.nav-links a:hover::after {
+  width: 100%;
+}
+
+.category-arrow {
+  margin-left: 0.4rem;
+  font-size: 1rem;
+}
+
+/* =========================================
+   ACTIONS
+========================================= */
+
 .nav-actions {
   display: flex;
   align-items: center;
-  gap: 0.6rem;
-}
-.nav-icon-btn {
-  width: 36px;
-  height: 36px;
-  border-radius: 999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--graphite);
-  position: relative;
-}
-.nav-icon-btn:hover {
-  background: var(--hairline);
-}
-.nav-cart-badge {
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  background: var(--signal);
-  color: white;
-  font-family: var(--font-mono);
-  font-size: 0.65rem;
-  width: 16px;
-  height: 16px;
-  border-radius: 999px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  gap: 1.15rem;
+  margin-left: 1rem;
 }
 
-@media (max-width: 640px) {
-  .nav-links { display: none; }
+/* ICON BUTTONS */
+
+.nav-icon-btn,
+.nav-user {
+  position: relative;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  color: white;
+
+  transition:
+    color 0.2s ease,
+    transform 0.2s ease;
+}
+
+.nav-icon-btn:hover,
+.nav-user:hover {
+  color: #1683ff;
+  transform: translateY(-1px);
+}
+
+/* CART / WISHLIST BADGES — same visual treatment, kept as distinct classes
+   (not shared) so each can be queried/targeted unambiguously. */
+
+.nav-cart-badge,
+.nav-wishlist-badge,
+.nav-notification-badge {
+  position: absolute;
+  top: -9px;
+  right: -9px;
+
+  min-width: 19px;
+  height: 19px;
+
+  padding: 0 5px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: #0878ff;
+  color: white;
+
+  font-size: 0.65rem;
+  font-weight: 700;
+
+  animation: cart-badge-pop 0.28s ease;
+}
+
+@keyframes cart-badge-pop {
+  0% {
+    transform: scale(0.4);
+  }
+  60% {
+    transform: scale(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+/* SIGN IN */
+
+.nav-signin {
+  min-width: 95px;
+  height: 50px;
+
+  border: none;
+  border-radius: 9px;
+
+  padding: 0 1.3rem;
+
+  background: #0878ff;
+  color: white;
+
+  font-size: 0.9rem;
+  font-weight: 600;
+
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.nav-signin:hover {
+  background: #1683ff;
+  transform: translateY(-1px);
+}
+
+/* =========================================
+   MOBILE MENU PANEL
+========================================= */
+
+.nav-mobile-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 98;
+  background: rgba(2, 6, 14, 0.6);
+  animation: nav-fade-in 0.2s ease;
+}
+
+.nav-mobile-panel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 99;
+
+  max-height: calc(100vh - 100%);
+  overflow-y: auto;
+
+  background: #050f1e;
+  border-bottom: 1px solid var(--hairline);
+  box-shadow: 0 20px 40px rgba(2, 11, 24, 0.5);
+
+  padding: 1.2rem 1.2rem 1.6rem;
+
+  animation: nav-slide-down 0.22s ease;
+}
+
+@keyframes nav-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes nav-slide-down {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.nav-mobile-search {
+  margin-bottom: 1.1rem;
+}
+
+.nav-mobile-links {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.nav-mobile-links a,
+.nav-mobile-links button {
+  padding: 0.85rem 0.3rem;
+
+  border: none;
+  background: none;
+
+  color: white;
+  font-size: 1rem;
+  font-weight: 500;
+  text-align: left;
+
+  border-bottom: 1px solid rgba(148, 163, 184, 0.1);
+}
+
+.nav-mobile-links a:hover,
+.nav-mobile-links button:hover {
+  color: #1683ff;
+}
+
+.nav-mobile-divider {
+  height: 1px;
+  margin: 0.4rem 0;
+  background: var(--hairline);
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 1300px) {
+  .nav-logo-img {
+    width: 62px;
+    height: 62px;
+  }
+}
+
+/* Adding the notifications bell (Phase 5B-3) put .nav-actions right at the
+   edge again in the 1241-1310px band (full .nav-links + full-width search +
+   5 action icons, almost no slack) — trim the gap slightly here rather than
+   changing the compact-search or nav-links breakpoints. */
+@media (max-width: 1310px) {
+  .nav-actions {
+    gap: 0.85rem;
+  }
+}
+
+@media (max-width: 1240px) {
+  .nav-service-inner {
+    gap: 1rem;
+  }
+
+  .service-item:nth-child(2) {
+    display: none;
+  }
+
+  .nav-inner {
+    gap: 1rem;
+  }
+
+  .nav-links {
+    display: none;
+  }
+
+  .nav-menu-btn {
+    display: flex;
+  }
+
+  .nav-actions {
+    margin-left: auto;
+  }
+
+  .nav-search-desktop {
+    display: none;
+  }
+}
+
+@media (max-width: 650px) {
+  .nav-service-inner {
+    justify-content: center;
+  }
+
+  .service-item {
+    display: none;
+  }
+
+  .service-item:first-child {
+    display: flex;
+  }
+
+  .nav-inner {
+    min-height: 76px;
+    padding: 0 1rem;
+  }
+
+  .nav-logo-img {
+    width: 50px;
+    height: 50px;
+  }
+
+  .nav-signin {
+    min-width: auto;
+    height: 43px;
+    padding: 0 0.9rem;
+  }
+
+  .nav-actions {
+    gap: 0.8rem;
+  }
+
+  .nav-mobile-panel {
+    padding: 1rem 1rem 1.4rem;
+  }
+}
+
+@media (max-width: 480px) {
+  /* At this width the icon row (wishlist/cart/user) plus the "Sign
+     in"/"Sign out" text button no longer fit together — the text button is
+     redundant with the icon-only .nav-user link right next to it, and
+     Sign out is still reachable from the mobile menu, so it's the one to drop. */
+  .nav-signin {
+    display: none;
+  }
+
+  .nav-actions {
+    gap: 0.6rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nav-mobile-backdrop,
+  .nav-mobile-panel,
+  .nav-cart-badge,
+  .nav-wishlist-badge,
+  .nav-notification-badge {
+    animation: none;
+  }
 }

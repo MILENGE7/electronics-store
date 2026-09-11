@@ -1,0 +1,257 @@
+/* =========================================
+   ADMIN DASHBOARD
+========================================= */
+
+.admin-dashboard {
+  position: relative;
+  padding-top: 3rem;
+}
+
+/* Large, faint, slowly-breathing FK Trading mark centered across the whole
+   dashboard background — sits behind the hero/cards (both have their own
+   solid backgrounds) so it only reads in the surrounding space, never
+   competing with real content. Shares @keyframes watermark-breathe with the
+   auth pages (defined once, globally, in index.css). */
+.admin-dashboard-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(55vw, 640px);
+  max-width: none;
+  opacity: 0.1;
+  filter: grayscale(1) brightness(2.4);
+  pointer-events: none;
+  user-select: none;
+  z-index: -1;
+  animation: watermark-breathe 8s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-dashboard-watermark {
+    animation: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .admin-dashboard-watermark {
+    display: none;
+  }
+}
+
+/* ---- HERO ---- */
+
+.admin-dashboard-hero {
+  position: relative;
+  overflow: hidden;
+
+  padding: 2.6rem 2.4rem;
+  margin-bottom: 1.6rem;
+  border-radius: 22px;
+  border: 1px solid var(--hairline);
+
+  background: linear-gradient(160deg, #0a1c33 0%, var(--ink-soft) 55%, #081527 100%);
+  box-shadow: 0 24px 50px rgba(2, 11, 24, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.admin-dashboard-hero-glow {
+  position: absolute;
+  top: -120px;
+  right: -80px;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(8, 120, 255, 0.35), transparent 70%);
+  pointer-events: none;
+}
+
+.admin-dashboard-eyebrow {
+  position: relative;
+  margin: 0 0 0.6rem;
+  color: var(--signal-bright);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.admin-dashboard-hero h1 {
+  position: relative;
+  margin: 0;
+  color: white;
+  font-size: 2rem;
+  letter-spacing: -0.01em;
+}
+
+.admin-dashboard-sub {
+  position: relative;
+  margin: 0.6rem 0 0;
+  max-width: 42em;
+  color: var(--silver);
+  font-size: 0.95rem;
+}
+
+/* ---- PENDING-ORDERS ALERT ---- */
+
+.admin-dashboard-alert {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+
+  padding: 0.75rem 1.1rem;
+  margin-bottom: 1.6rem;
+  border-radius: 12px;
+  border: 1px solid rgba(224, 165, 44, 0.4);
+
+  background: rgba(224, 165, 44, 0.08);
+  color: #e0a52c;
+  font-size: 0.88rem;
+
+  transition: border-color 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.admin-dashboard-alert:hover {
+  border-color: #e0a52c;
+  background: rgba(224, 165, 44, 0.14);
+  transform: translateY(-1px);
+}
+
+.admin-dashboard-alert strong {
+  color: #f2c05a;
+}
+
+/* ---- FEATURE CARDS ---- */
+
+.admin-dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1.2rem;
+}
+
+.admin-dash-card {
+  position: relative;
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+
+  padding: 1.6rem 1.5rem 1.8rem;
+  border-radius: 18px;
+  border: 1px solid var(--hairline);
+
+  background: linear-gradient(160deg, #0d223d 0%, var(--ink-soft) 60%);
+  box-shadow: 0 10px 24px rgba(2, 11, 24, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+
+.admin-dash-card:hover,
+.admin-dash-card:focus-visible {
+  transform: translateY(-6px) scale(1.015);
+  border-color: var(--signal);
+  box-shadow: 0 22px 40px rgba(2, 11, 24, 0.55), 0 0 0 1px rgba(8, 120, 255, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.admin-dash-card:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 3px;
+}
+
+.admin-dash-card-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  border-radius: 15px;
+  color: white;
+
+  box-shadow: 0 10px 20px -6px var(--tone-shadow, rgba(8, 120, 255, 0.55)), inset 0 1px 0 rgba(255, 255, 255, 0.25);
+  transition: transform 0.25s ease;
+}
+
+.admin-dash-card:hover .admin-dash-card-icon {
+  transform: translateY(-2px) scale(1.05);
+}
+
+.admin-dash-card.tone-blue .admin-dash-card-icon {
+  background: linear-gradient(150deg, #1683ff, #0058c7);
+  --tone-shadow: rgba(22, 131, 255, 0.55);
+}
+
+.admin-dash-card.tone-violet .admin-dash-card-icon {
+  background: linear-gradient(150deg, #9d7bff, #6c3fd6);
+  --tone-shadow: rgba(139, 92, 246, 0.5);
+}
+
+.admin-dash-card.tone-gold .admin-dash-card-icon {
+  background: linear-gradient(150deg, #f2c05a, #c2860f);
+  --tone-shadow: rgba(224, 165, 44, 0.5);
+}
+
+.admin-dash-card.tone-green .admin-dash-card-icon {
+  background: linear-gradient(150deg, #4fdb8a, #1f9955);
+  --tone-shadow: rgba(53, 194, 106, 0.5);
+}
+
+.admin-dash-card-body h2 {
+  margin: 0 0 0.35rem;
+  color: white;
+  font-size: 1.15rem;
+}
+
+.admin-dash-card-body p {
+  margin: 0;
+  color: var(--silver);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.admin-dash-card-stat {
+  position: absolute;
+  top: 1.4rem;
+  right: 1.5rem;
+
+  padding: 0.25rem 0.6rem;
+  border-radius: 20px;
+  border: 1px solid var(--hairline);
+
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--silver);
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.admin-dash-card-arrow {
+  align-self: flex-end;
+  margin-top: -0.4rem;
+  color: var(--silver-soft);
+  font-size: 1.1rem;
+  transition: transform 0.25s ease, color 0.25s ease;
+}
+
+.admin-dash-card:hover .admin-dash-card-arrow {
+  color: var(--signal-bright);
+  transform: translateX(4px);
+}
+
+@media (max-width: 480px) {
+  .admin-dashboard {
+    padding-top: 2rem;
+  }
+
+  .admin-dashboard-hero {
+    padding: 1.8rem 1.4rem;
+  }
+
+  .admin-dashboard-hero h1 {
+    font-size: 1.5rem;
+  }
+
+  .admin-dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}

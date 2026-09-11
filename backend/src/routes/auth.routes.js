@@ -1,6 +1,6 @@
 const express = require("express");
 const {
-  register, login, verifyLogin2FA, setup2FA, confirm2FA, disable2FA, me,
+  register, login, verifyLogin2FA, setup2FA, confirm2FA, disable2FA, me, updateProfile,
 } = require("../controllers/auth.controller");
 const { requireAuth, requireAdmin } = require("../middleware/auth");
 
@@ -11,6 +11,7 @@ router.post("/login", login);
 router.post("/2fa/login-verify", verifyLogin2FA);
 
 router.get("/me", requireAuth, me);
+router.patch("/me", requireAuth, updateProfile);
 
 // Admin-only 2FA enrollment management
 router.post("/2fa/setup", requireAuth, requireAdmin, setup2FA);

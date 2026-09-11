@@ -1,0 +1,307 @@
+/* =========================================
+   PRODUCT FILTERS
+========================================= */
+
+.product-filters {
+  display: flex;
+  flex-direction: column;
+}
+
+.product-filters-sidebar {
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  background: var(--ink-soft);
+  padding: 1.4rem;
+  height: fit-content;
+}
+
+.product-filters-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  margin-bottom: 1.2rem;
+}
+
+.product-filters-head h3 {
+  color: white;
+  font-size: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.product-filters-head-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.product-filters-clear-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--signal-bright);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.product-filters-clear-link:hover {
+  text-decoration: underline;
+}
+
+.product-filters-close {
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--hairline);
+  border-radius: 50%;
+  background: none;
+  color: white;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.product-filters-close:hover {
+  border-color: var(--signal);
+  background: var(--signal-soft);
+}
+
+.product-filters-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1.4rem;
+}
+
+.filter-group {
+  border: none;
+  margin: 0;
+  padding: 0;
+}
+
+.filter-group legend {
+  padding: 0;
+  margin-bottom: 0.7rem;
+  color: var(--silver);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.filter-option-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.filter-option {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+
+  width: 100%;
+  padding: 0.5rem 0.5rem;
+
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: #cbd5e1;
+
+  font-size: 0.86rem;
+  text-align: left;
+
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.filter-option:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: white;
+}
+
+.filter-option-dot {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1.5px solid var(--hairline);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.filter-option.active {
+  color: white;
+  font-weight: 600;
+}
+
+.filter-option.active .filter-option-dot {
+  border-color: var(--signal);
+  background: var(--signal);
+  box-shadow: inset 0 0 0 2px var(--ink-soft);
+}
+
+.filter-option:focus-visible {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
+}
+
+/* PRICE */
+
+.filter-price-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.6rem;
+}
+
+.filter-price-field {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.filter-price-field label {
+  color: var(--silver);
+  font-size: 0.72rem;
+}
+
+.filter-price-field input {
+  width: 100%;
+  padding: 0.55rem 0.6rem;
+  font-size: 0.85rem;
+}
+
+.filter-price-sep {
+  color: var(--silver);
+  padding-bottom: 0.6rem;
+}
+
+/* STOCK CHECKBOX */
+
+.filter-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  color: #cbd5e1;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.filter-checkbox input {
+  position: absolute;
+  opacity: 0;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  cursor: pointer;
+}
+
+.filter-checkbox-box {
+  flex-shrink: 0;
+  width: 19px;
+  height: 19px;
+  border-radius: 5px;
+  border: 1.5px solid var(--hairline);
+  position: relative;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.filter-checkbox input:checked + .filter-checkbox-box {
+  background: var(--signal);
+  border-color: var(--signal);
+}
+
+.filter-checkbox input:checked + .filter-checkbox-box::after {
+  content: "";
+  position: absolute;
+  left: 5px;
+  top: 1px;
+  width: 5px;
+  height: 10px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(40deg);
+}
+
+.filter-checkbox input:focus-visible + .filter-checkbox-box {
+  outline: 2px solid var(--signal);
+  outline-offset: 2px;
+}
+
+/* =========================================
+   DRAWER (MOBILE)
+========================================= */
+
+.filter-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  background: rgba(2, 6, 14, 0.65);
+  animation: filter-fade-in 0.2s ease;
+}
+
+.filter-drawer {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 201;
+
+  width: min(360px, 88vw);
+  overflow-y: auto;
+
+  background: #050f1e;
+  border-left: 1px solid var(--hairline);
+  box-shadow: -18px 0 40px rgba(2, 11, 24, 0.5);
+
+  animation: filter-slide-in 0.24s ease;
+}
+
+@keyframes filter-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes filter-slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.product-filters-drawer {
+  min-height: 100%;
+  padding: 1.4rem;
+}
+
+.product-filters-drawer .product-filters-body {
+  flex: 1;
+}
+
+.product-filters-footer {
+  display: flex;
+  gap: 0.8rem;
+  margin-top: 1.6rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid var(--hairline);
+}
+
+.product-filters-footer .btn {
+  flex: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .filter-drawer-backdrop,
+  .filter-drawer {
+    animation: none;
+  }
+}

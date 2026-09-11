@@ -1,18 +1,21 @@
 :root {
-  /* Color tokens */
-  --ink: #0e0f11;
-  --ink-soft: #17181b;
-  --paper: #fafaf8;
-  --graphite: #1b1c1f;
-  --silver: #6b6f76;
-  --silver-soft: #d8d9dc;
-  --hairline: #e4e4e1;
-  --signal: #3d5afe;
-  --signal-dim: #2c3fb0;
-  --signal-soft: #e8ecff;
+  --ink: #020b18;
+  --ink-soft: #061426;
+  --navy: #03101f;
+  --navy-light: #081b31;
 
-  /* Type tokens */
-  --font-display: "Space Grotesk", "Arial Narrow", sans-serif;
+  --paper: #ffffff;
+  --graphite: #e8edf5;
+  --silver: #a7b2c2;
+  --silver-soft: #5e6d80;
+  --hairline: rgba(148, 163, 184, 0.22);
+
+  --signal: #0878ff;
+  --signal-bright: #1683ff;
+  --signal-dim: #0058c7;
+  --signal-soft: rgba(8, 120, 255, 0.12);
+
+  --font-display: "Inter", "Arial", sans-serif;
   --font-body: "Inter", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", "Courier New", monospace;
 }
@@ -21,18 +24,39 @@
   box-sizing: border-box;
 }
 
-body {
-  font-family: var(--font-body);
-  margin: 0;
-  color: var(--graphite);
-  background: var(--paper);
-  -webkit-font-smoothing: antialiased;
+html {
+  scroll-behavior: smooth;
 }
 
-h1, h2, h3, h4 {
+html,
+body {
+  overflow-x: hidden;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-body);
+  color: var(--graphite);
+  background: var(--ink);
+  -webkit-font-smoothing: antialiased;
+  overflow-wrap: break-word;
+}
+
+body,
+button,
+input,
+select,
+textarea {
+  font-family: var(--font-body);
+}
+
+h1,
+h2,
+h3,
+h4 {
   font-family: var(--font-display);
   margin: 0;
-  letter-spacing: -0.01em;
+  letter-spacing: -0.02em;
 }
 
 a {
@@ -40,84 +64,119 @@ a {
   color: inherit;
 }
 
-a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible {
+img {
+  max-width: 100%;
+  display: block;
+}
+
+button {
+  cursor: pointer;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
   outline: 2px solid var(--signal);
   outline-offset: 2px;
 }
 
 .price {
   font-family: var(--font-mono);
-  font-weight: 500;
+  font-weight: 600;
 }
 
-/* ---------- Layout shells ---------- */
+/* =========================================
+   PAGE LAYOUT
+========================================= */
+
 .page-main {
-  max-width: 1160px;
+  max-width: 1400px;
   margin: 0 auto;
-  padding: 2.5rem 1.5rem 4rem;
+  padding: 4rem 5%;
 }
 
-/* ---------- Buttons ---------- */
+/* =========================================
+   BUTTONS
+========================================= */
+
 .btn {
   font-family: var(--font-body);
   font-weight: 600;
   font-size: 0.9rem;
   border: none;
-  border-radius: 999px;
-  padding: 0.7rem 1.4rem;
+  border-radius: 8px;
+  padding: 0.75rem 1.4rem;
   cursor: pointer;
-  transition: transform 0.15s ease, background 0.15s ease;
+  transition:
+    transform 0.2s ease,
+    background 0.2s ease,
+    border-color 0.2s ease;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
 }
+
 .btn:hover {
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 }
+
 .btn-primary {
   background: var(--signal);
   color: white;
 }
+
 .btn-primary:hover {
   background: var(--signal-dim);
 }
-.btn-ghost {
-  background: transparent;
-  color: var(--paper);
-  border: 1px solid rgba(250, 250, 248, 0.35);
-}
-.btn-ghost:hover {
-  border-color: var(--paper);
-}
+
 .btn-outline {
   background: transparent;
-  color: var(--graphite);
-  border: 1px solid var(--graphite);
-}
-.btn-outline:hover {
-  background: var(--graphite);
-  color: var(--paper);
-}
-.btn-pill {
-  background: transparent;
-  color: var(--graphite);
-  border: 1.5px solid var(--graphite);
-  padding: 0.65rem 1.5rem;
-}
-.btn-pill:hover {
-  background: var(--graphite);
-  color: var(--paper);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.35);
 }
 
-/* ---------- Form elements ---------- */
-input, select {
-  font-family: var(--font-body);
-  border: 1px solid var(--hairline);
-  border-radius: 10px;
-  padding: 0.65rem 0.85rem;
-  font-size: 0.95rem;
+.btn-outline:hover {
   background: white;
+  color: var(--ink);
+}
+
+.btn-pill {
+  background: transparent;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+}
+
+.btn-pill:hover {
+  background: var(--signal);
+  border-color: var(--signal);
+  color: white;
+}
+
+/* =========================================
+   FORM ELEMENTS
+========================================= */
+
+input,
+select {
+  font-family: var(--font-body);
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 8px;
+  padding: 0.75rem 0.9rem;
+  font-size: 0.95rem;
+  background: #081827;
+  color: white;
+}
+
+input::placeholder {
+  color: #8190a4;
+}
+
+input:focus,
+select:focus {
+  border-color: var(--signal);
+  outline: none;
 }
 
 form {
@@ -127,17 +186,23 @@ form {
   max-width: 420px;
 }
 
-/* ---------- Tables (admin views) ---------- */
+/* =========================================
+   TABLES
+========================================= */
+
 table {
   border-collapse: collapse;
   width: 100%;
 }
-th, td {
+
+th,
+td {
   border-bottom: 1px solid var(--hairline);
-  padding: 0.6rem 0.5rem;
+  padding: 0.8rem 0.5rem;
   text-align: left;
   font-size: 0.9rem;
 }
+
 th {
   font-family: var(--font-mono);
   font-size: 0.72rem;
@@ -147,53 +212,115 @@ th {
   font-weight: 500;
 }
 
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    transition-duration: 0.01ms !important;
+/* =========================================
+   AUTH
+========================================= */
+
+/* Full-bleed backdrop behind the narrow auth form — fills the whole visible
+   page area (not just the .page-main column) so the watermark can sit
+   centered across the entire background rather than tucked to one side. */
+.auth-bg {
+  position: relative;
+  overflow: hidden;
+  min-height: 78vh;
+  display: flex;
+  align-items: center;
+}
+
+.auth-page {
+  position: relative;
+  z-index: 1;
+  max-width: 420px;
+}
+
+/* Large, faint, slowly-breathing FK Trading mark centered across the whole
+   backdrop — an atmosphere watermark, not a literal stretched logo. The
+   existing global `overflow-x: hidden` on html/body keeps its oversized box
+   from ever causing a horizontal scrollbar. */
+.auth-watermark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(64vw, 820px);
+  max-width: none;
+  opacity: 0.12;
+  filter: grayscale(1) brightness(2.2);
+  pointer-events: none;
+  user-select: none;
+  animation: watermark-breathe 8s ease-in-out infinite;
+}
+
+@keyframes watermark-breathe {
+  0%, 100% {
+    opacity: 0.09;
+    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+  }
+  50% {
+    opacity: 0.19;
+    transform: translate(-50%, -50%) scale(1.05) rotate(1.5deg);
   }
 }
 
-/* ---------- Auth forms ---------- */
-.auth-page {
-  max-width: 420px;
+@media (prefers-reduced-motion: reduce) {
+  .auth-watermark {
+    animation: none;
+  }
 }
+
+@media (max-width: 640px) {
+  .auth-watermark {
+    width: min(90vw, 420px);
+    opacity: 0.08;
+  }
+}
+
 .auth-form {
   gap: 0.9rem;
 }
+
 .auth-sub {
   color: var(--silver);
   font-size: 0.9rem;
   margin: -0.4rem 0 0.2rem;
 }
+
 .form-error {
-  color: #c0362c;
+  color: #ff6b6b;
   font-size: 0.88rem;
   margin: 0;
 }
 
-/* ---------- Cart ---------- */
+/* =========================================
+   CART
+========================================= */
+
 .cart-list {
   display: flex;
   flex-direction: column;
   gap: 0.8rem;
   margin: 1.5rem 0;
 }
+
 .cart-row {
   display: flex;
   align-items: center;
   gap: 1rem;
-  padding: 0.8rem 1rem;
+  padding: 1rem;
   border: 1px solid var(--hairline);
   border-radius: 12px;
+  background: var(--ink-soft);
 }
+
 .cart-row-name {
   flex: 1;
   font-weight: 500;
 }
+
 .cart-qty {
   width: 60px;
 }
+
 .cart-total-row {
   display: flex;
   align-items: center;
@@ -203,63 +330,19 @@ th {
   margin-top: 1rem;
 }
 
-/* ---------- Product detail ---------- */
-.product-detail {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2.5rem;
-}
-.product-detail-image {
-  aspect-ratio: 1 / 1;
-  background: var(--signal-soft);
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-}
-.product-detail-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.product-detail-brand {
-  font-family: var(--font-mono);
-  font-size: 0.72rem;
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--silver);
-}
-.product-detail-price {
-  font-size: 1.4rem;
-  margin: 0.6rem 0 1.2rem;
-}
-.product-detail-stock {
-  color: var(--silver);
-  font-size: 0.88rem;
-  margin-bottom: 1.2rem;
-}
-.review-row {
-  border-top: 1px solid var(--hairline);
-  padding: 0.9rem 0;
-}
-.review-row strong {
-  font-family: var(--font-display);
-  font-size: 0.92rem;
-}
+/* =========================================
+   ACCOUNT
+========================================= */
 
-@media (max-width: 760px) {
-  .product-detail { grid-template-columns: 1fr; }
-}
-
-/* ---------- Account page ---------- */
 .account-card {
   border: 1px solid var(--hairline);
   border-radius: 14px;
   padding: 1.3rem 1.5rem;
   max-width: 420px;
   margin: 1.2rem 0 1.5rem;
+  background: var(--ink-soft);
 }
+
 .account-label {
   font-family: var(--font-mono);
   font-size: 0.68rem;
@@ -268,14 +351,55 @@ th {
   color: var(--silver);
   margin: 0.8rem 0 0.15rem;
 }
+
 .account-label:first-child {
   margin-top: 0;
 }
+
 .account-value {
   margin: 0;
   font-size: 1rem;
 }
+
 .account-links {
   display: flex;
   gap: 0.8rem;
+}
+
+/* =========================================
+   SCROLLBAR
+========================================= */
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #020b18;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1d3552;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--signal);
+}
+
+/* =========================================
+   MOBILE
+========================================= */
+
+@media (max-width: 760px) {
+  .page-main {
+    padding: 3rem 1.2rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
