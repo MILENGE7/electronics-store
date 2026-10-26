@@ -5,12 +5,20 @@ generator client {
 datasource db {
   provider  = "postgresql"
   url       = env("DATABASE_URL") // pooled connection — used by the running app
-  directUrl = env("DIRECT_URL")   // direct connection — used by Prisma Migrate
+  directUrl = env("DIRECT_URL") // direct connection — used by Prisma Migrate
 }
 
 enum Role {
   CUSTOMER
+  SELLER
   ADMIN
+}
+
+enum SellerStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
 }
 
 enum OrderStatus {
@@ -22,18 +30,83 @@ enum OrderStatus {
   REFUNDED
 }
 
+enum PaymentMethod {
+  PAYSTACK
+  CASH_ON_DELIVERY
+}
+
 model User {
-  id                String    @id @default(uuid())
-  email             String    @unique
-  password          String
-  name              String
-  role              Role      @default(CUSTOMER)
-  twoFactorSecret   String?
-  twoFactorEnabled  Boolean   @default(false)
-  addresses         Address[]
-  orders            Order[]
-  reviews           Review[]
-  createdAt         DateTime  @default(now())
+  id               String               @id @default(uuid())
+  email            String               @unique
+  password         String
+  name             String
+  role             Role                 @default(CUSTOMER)
+  twoFactorSecret  String?
+  twoFactorEnabled Boolean              @default(false)
+  addresses        Address[]
+  orders           Order[]
+  reviews          Review[]
+  seller           Seller?
+  passwordResets   PasswordResetToken[]
+  createdAt        DateTime             @default(now())
+}
+
+// A business selling on FK Trading. Products with no seller belong to
+// FK Trading itself. FK Trading delivers every order and collects the cash;
+// sellers are paid their share (minus commission) via recorded payouts.
+model Seller {
+  id           String       @id @default(uuid())
+  userId       String       @unique
+  user         User         @relation(fields: [userId], references: [id])
+  businessName String
+  phone        String
+  description  String?
+  taxId        String? // TIN or national ID, checked by the admin before approval
+  address      String?
+  status       SellerStatus @default(PENDING)
+  adminNote    String? // e.g. why an application was rejected
+  products     Product[]
+  orderItems   OrderItem[]
+  payouts      Payout[]
+  createdAt    DateTime     @default(now())
+  reviewedAt   DateTime?
+}
+
+// Money FK Trading has paid out to a seller (recorded by the admin).
+model Payout {
+  id        String   @id @default(uuid())
+  sellerId  String
+  seller    Seller   @relation(fields: [sellerId], references: [id])
+  amount    Decimal  @db.Decimal(12, 2)
+  method    String // e.g. "MTN MoMo", "Bank transfer", "Cash"
+  reference String?
+  note      String?
+  createdAt DateTime @default(now())
+}
+
+model PasswordResetToken {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  tokenHash String    @unique // sha256 of the emailed token — the raw token is never stored
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+}
+
+model DeliveryZone {
+  id       String  @id @default(uuid())
+  name     String  @unique // e.g. "Kigali", "Eastern Province"
+  fee      Decimal @db.Decimal(10, 2)
+  isActive Boolean @default(true)
+  orders   Order[]
+}
+
+// Store-wide settings. Always a single row with id 1.
+model StoreSettings {
+  id                Int     @id @default(1)
+  commissionPercent Decimal @default(10) @db.Decimal(5, 2)
+  lowStockThreshold Int     @default(5)
 }
 
 model Address {
@@ -44,7 +117,7 @@ model Address {
   line2      String?
   city       String
   state      String
-  postalCode String
+  postalCode String?
   country    String
   isDefault  Boolean @default(false)
 }
@@ -63,6 +136,10 @@ model Product {
   stock       Int         @default(0)
   images      String[]
   brand       String?
+  // [{ "name": "Storage", "value": "128 GB" }, ...]
+  specs       Json        @default("[]")
+  sellerId    String?
+  seller      Seller?     @relation(fields: [sellerId], references: [id])
   categoryId  String
   category    Category    @relation(fields: [categoryId], references: [id])
   reviews     Review[]
@@ -86,25 +163,36 @@ model Review {
 }
 
 model Order {
-  id                String      @id @default(uuid())
-  userId            String
-  user              User        @relation(fields: [userId], references: [id])
-  status            OrderStatus @default(PENDING)
-  total             Decimal     @db.Decimal(12, 2)
-  shippingAddress   Json
-  paymentReference  String?     @unique
-  paid              Boolean     @default(false)
-  items             OrderItem[]
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
+  id                  String        @id @default(uuid())
+  userId              String
+  user                User          @relation(fields: [userId], references: [id])
+  status              OrderStatus   @default(PENDING)
+  cancelledByCustomer Boolean       @default(false)
+  total               Decimal       @db.Decimal(12, 2) // items + delivery fee
+  deliveryFee         Decimal       @default(0) @db.Decimal(10, 2)
+  deliveryZoneId      String?
+  deliveryZone        DeliveryZone? @relation(fields: [deliveryZoneId], references: [id])
+  shippingAddress     Json
+  paymentReference    String?       @unique
+  paymentMethod       PaymentMethod @default(PAYSTACK)
+  paid                Boolean       @default(false)
+  items               OrderItem[]
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
 }
 
 model OrderItem {
-  id        String  @id @default(uuid())
-  orderId   String
-  order     Order   @relation(fields: [orderId], references: [id])
-  productId String
-  product   Product @relation(fields: [productId], references: [id])
-  quantity  Int
-  price     Decimal @db.Decimal(10, 2)
+  id                String    @id @default(uuid())
+  orderId           String
+  order             Order     @relation(fields: [orderId], references: [id])
+  productId         String
+  product           Product   @relation(fields: [productId], references: [id])
+  quantity          Int
+  price             Decimal   @db.Decimal(10, 2)
+  // Snapshotted at order time so later changes to a product's seller or the
+  // commission rate never rewrite what was owed on past sales.
+  sellerId          String?
+  seller            Seller?   @relation(fields: [sellerId], references: [id])
+  commissionPercent Decimal   @default(0) @db.Decimal(5, 2)
+  readyAt           DateTime? // seller has the item ready for FK Trading to collect
 }

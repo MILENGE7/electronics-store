@@ -6,7 +6,7 @@ const ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp", "im
 
 function fileFilter(req, file, cb) {
   if (!ALLOWED_MIME_TYPES.has(file.mimetype)) {
-    return cb(new Error("Only JPEG, PNG, WEBP, or GIF images are allowed"));
+    return cb(Object.assign(new Error("Only JPEG, PNG, WEBP, or GIF images are allowed"), { status: 400 }));
   }
   cb(null, true);
 }

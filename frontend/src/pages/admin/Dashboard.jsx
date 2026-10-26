@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import api from "../../api/client";
 import { useAuth } from "../../context/AuthContext";
+import SalesChart from "../../components/SalesChart";
+import { formatRWF } from "../../utils/currency";
+import "../../styles/dashboard.css";
 import "./Dashboard.css";
 
 function ProductsIcon() {
@@ -34,6 +37,27 @@ function OrdersIcon() {
   );
 }
 
+function SellersIcon() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+      <circle cx="9" cy="8" r="3.2" />
+      <path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6" strokeLinecap="round" />
+      <path d="M16 4.5a3.2 3.2 0 0 1 0 6.4M18 14.4c1.8.8 3 2.7 3 4.8" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+function SettingsIcon() {
+  return (
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
+      <path d="M4 6h10M18 6h2M4 12h4M12 12h8M4 18h12M20 18h0" strokeLinecap="round" />
+      <circle cx="16" cy="6" r="2" />
+      <circle cx="10" cy="12" r="2" />
+      <circle cx="18" cy="18" r="2" />
+    </svg>
+  );
+}
+
 function SecurityIcon() {
   return (
     <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7">
@@ -53,41 +77,36 @@ function AlertIcon() {
 }
 
 const CARDS = [
-  { to: "/admin/products", label: "Products", desc: "Add, edit, and manage your catalog.", Icon: ProductsIcon, statKey: "products", tone: "blue" },
-  { to: "/admin/categories", label: "Categories", desc: "Organize products into categories.", Icon: CategoriesIcon, statKey: "categories", tone: "violet" },
-  { to: "/admin/orders", label: "Orders", desc: "Track and update customer orders.", Icon: OrdersIcon, statKey: "orders", tone: "gold" },
-  { to: "/admin/security", label: "Security", desc: "Manage two-factor authentication.", Icon: SecurityIcon, statKey: null, tone: "green" },
+  { to: "/admin/products", label: "Products", desc: "Add, edit, and restock your catalog.", Icon: ProductsIcon, tone: "blue" },
+  { to: "/admin/categories", label: "Categories", desc: "Organize products into categories.", Icon: CategoriesIcon, tone: "violet" },
+  { to: "/admin/orders", label: "Orders", desc: "Find, process and print customer orders.", Icon: OrdersIcon, tone: "gold" },
+  { to: "/admin/sellers", label: "Sellers", desc: "Approve sellers and record their payouts.", Icon: SellersIcon, tone: "violet" },
+  { to: "/admin/settings", label: "Settings", desc: "Commission, stock alerts and delivery fees.", Icon: SettingsIcon, tone: "blue" },
+  { to: "/admin/security", label: "Security", desc: "Manage two-factor authentication.", Icon: SecurityIcon, tone: "green" },
 ];
+
+const PERIODS = [
+  { key: "today", label: "Today" },
+  { key: "week", label: "Last 7 days" },
+  { key: "month", label: "Last 30 days" },
+];
+
+const plural = (n, word) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
 export default function Dashboard() {
   const { user } = useAuth();
-  const [stats, setStats] = useState({ products: null, categories: null, orders: null, pendingOrders: null });
+  const [stats, setStats] = useState(null);
+  const [loadError, setLoadError] = useState(false);
 
-  useEffect(() => {
-    let cancelled = false;
-
+  function load() {
+    setLoadError(false);
     api
-      .get("/products", { params: { limit: 1 } })
-      .then((res) => { if (!cancelled) setStats((s) => ({ ...s, products: res.data.total })); })
-      .catch(() => {});
+      .get("/admin/stats")
+      .then((res) => setStats(res.data))
+      .catch(() => setLoadError(true));
+  }
 
-    api
-      .get("/categories")
-      .then((res) => { if (!cancelled) setStats((s) => ({ ...s, categories: res.data.length })); })
-      .catch(() => {});
-
-    api
-      .get("/orders")
-      .then((res) => {
-        if (cancelled) return;
-        const orders = res.data;
-        const pending = orders.filter((o) => o.status === "PENDING").length;
-        setStats((s) => ({ ...s, orders: orders.length, pendingOrders: pending }));
-      })
-      .catch(() => {});
-
-    return () => { cancelled = true; };
-  }, []);
+  useEffect(load, []);
 
   const firstName = user?.name ? user.name.trim().split(/\s+/)[0] : null;
 
@@ -99,20 +118,129 @@ export default function Dashboard() {
         <div className="admin-dashboard-hero-glow" aria-hidden="true" />
         <p className="admin-dashboard-eyebrow">FK Trading · Admin</p>
         <h1>Welcome back{firstName ? `, ${firstName}` : ""}.</h1>
-        <p className="admin-dashboard-sub">Here's a quick look at your store. Pick a section below to get to work.</p>
+        <p className="admin-dashboard-sub">Here&apos;s how the store is doing.</p>
       </div>
 
-      {stats.pendingOrders !== null && stats.pendingOrders > 0 && (
-        <Link to="/admin/orders" className="admin-dashboard-alert">
-          <AlertIcon />
-          <span>
-            <strong>{stats.pendingOrders}</strong> order{stats.pendingOrders === 1 ? " is" : "s are"} awaiting processing
-          </span>
-        </Link>
+      {loadError && (
+        <p className="form-error" style={{ marginBottom: "1.5rem" }}>
+          Couldn&apos;t load store figures.{" "}
+          <button type="button" className="btn btn-outline" onClick={load}>
+            Try Again
+          </button>
+        </p>
       )}
 
-      <div className="admin-dashboard-grid">
-        {CARDS.map(({ to, label, desc, Icon, statKey, tone }) => (
+      {stats && (
+        <>
+          <div className="dash-actions" style={{ marginBottom: "1.6rem" }}>
+            {stats.needsAction > 0 && (
+              <Link to="/admin/orders?status=PROCESSING" className="admin-dashboard-alert" style={{ marginBottom: 0 }}>
+                <AlertIcon />
+                <span>
+                  <strong>{stats.needsAction}</strong> {stats.needsAction === 1 ? "order needs" : "orders need"} processing
+                </span>
+              </Link>
+            )}
+            {stats.pendingSellerApplications > 0 && (
+              <Link to="/admin/sellers?status=PENDING" className="admin-dashboard-alert" style={{ marginBottom: 0 }}>
+                <AlertIcon />
+                <span>
+                  <strong>{stats.pendingSellerApplications}</strong>{" "}
+                  {stats.pendingSellerApplications === 1 ? "seller application" : "seller applications"} waiting
+                </span>
+              </Link>
+            )}
+            {stats.lowStock.length > 0 && (
+              <a href="#low-stock" className="admin-dashboard-alert" style={{ marginBottom: 0 }}>
+                <AlertIcon />
+                <span>
+                  <strong>{stats.lowStock.length}</strong> {stats.lowStock.length === 1 ? "product is" : "products are"} low on
+                  stock
+                </span>
+              </a>
+            )}
+          </div>
+
+          <div className="dash-stats">
+            {PERIODS.map(({ key, label }) => (
+              <div className="dash-stat" key={key}>
+                <span className="dash-stat-label">{label}</span>
+                <span className="dash-stat-value">{formatRWF(stats.period[key].sales)}</span>
+                <span className="dash-stat-note">
+                  {plural(stats.period[key].orders, "order")} · {formatRWF(stats.period[key].collected)} collected
+                </span>
+              </div>
+            ))}
+            <div className="dash-stat">
+              <span className="dash-stat-label">Commission earned</span>
+              <span className="dash-stat-value">{formatRWF(stats.commissionEarned)}</span>
+              <span className="dash-stat-note">from seller sales, all time</span>
+            </div>
+            <div className="dash-stat">
+              <span className="dash-stat-label">Customers</span>
+              <span className="dash-stat-value">{stats.customers}</span>
+            </div>
+          </div>
+
+          <section className="dash-section">
+            <div className="dash-section-head">
+              <h2>Daily sales · last 30 days</h2>
+              <Link to="/admin/orders">All orders →</Link>
+            </div>
+            <SalesChart data={stats.series} />
+          </section>
+
+          <div className="dash-columns">
+            <section className="dash-section">
+              <h2>Best sellers · last 30 days</h2>
+              {stats.topProducts.length === 0 ? (
+                <p className="dash-empty">No sales yet.</p>
+              ) : (
+                <ol className="dash-list">
+                  {stats.topProducts.map((p) => (
+                    <li key={p.id}>
+                      {p.images?.[0] ? <img className="dash-thumb" src={p.images[0]} alt="" /> : <span className="dash-thumb" />}
+                      <span className="dash-list-main">
+                        <strong>{p.name}</strong>
+                        <span>{formatRWF(p.price)}</span>
+                      </span>
+                      <span>{p.unitsSold} sold</span>
+                    </li>
+                  ))}
+                </ol>
+              )}
+            </section>
+
+            <section className="dash-section" id="low-stock">
+              <div className="dash-section-head">
+                <h2>Low stock (≤ {stats.lowStockThreshold})</h2>
+                <Link to="/admin/products?filter=low-stock">Restock →</Link>
+              </div>
+              {stats.lowStock.length === 0 ? (
+                <p className="dash-empty">Everything is well stocked.</p>
+              ) : (
+                <ul className="dash-list">
+                  {stats.lowStock.map((p) => (
+                    <li key={p.id}>
+                      {p.images?.[0] ? <img className="dash-thumb" src={p.images[0]} alt="" /> : <span className="dash-thumb" />}
+                      <span className="dash-list-main">
+                        <strong>{p.name}</strong>
+                        <span>{p.seller ? `Sold by ${p.seller.businessName}` : "FK Trading"}</span>
+                      </span>
+                      <span className={`badge ${p.stock === 0 ? "badge-red" : "badge-amber"}`}>
+                        {p.stock === 0 ? "Out of stock" : `${p.stock} left`}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          </div>
+        </>
+      )}
+
+      <div className="admin-dashboard-grid" style={{ marginTop: "2rem" }}>
+        {CARDS.map(({ to, label, desc, Icon, tone }) => (
           <Link to={to} key={to} className={`admin-dash-card tone-${tone}`}>
             <span className="admin-dash-card-icon">
               <Icon />
@@ -122,10 +250,6 @@ export default function Dashboard() {
               <h2>{label}</h2>
               <p>{desc}</p>
             </div>
-
-            {statKey && stats[statKey] !== null && (
-              <span className="admin-dash-card-stat">{stats[statKey]}</span>
-            )}
 
             <span className="admin-dash-card-arrow" aria-hidden="true">→</span>
           </Link>

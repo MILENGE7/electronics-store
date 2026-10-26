@@ -606,3 +606,35 @@
     gap: 1rem;
   }
 }
+
+/* ---- Seller line + specifications ---- */
+
+.pd-sold-by {
+  margin: -0.3rem 0 0.8rem;
+  color: var(--silver);
+  font-size: 0.88rem;
+}
+
+.pd-sold-by strong {
+  color: var(--graphite);
+}
+
+.pd-specs {
+  width: 100%;
+  max-width: 640px;
+  border-collapse: collapse;
+}
+
+.pd-specs th,
+.pd-specs td {
+  padding: 0.65rem 0.8rem;
+  border-bottom: 1px solid var(--hairline);
+  text-align: left;
+  vertical-align: top;
+}
+
+.pd-specs th {
+  width: 40%;
+  color: var(--silver);
+  font-weight: 500;
+}

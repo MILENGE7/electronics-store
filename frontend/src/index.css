@@ -195,6 +195,17 @@ table {
   width: 100%;
 }
 
+/* html/body clip horizontal overflow, so a wide table would just lose its
+   right-hand columns on a phone — this lets it scroll sideways instead. */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-scroll table {
+  min-width: 520px;
+}
+
 th,
 td {
   border-bottom: 1px solid var(--hairline);
@@ -283,6 +294,18 @@ th {
   color: var(--silver);
   font-size: 0.9rem;
   margin: -0.4rem 0 0.2rem;
+}
+
+.auth-switch {
+  margin: 0.2rem 0 0;
+  color: var(--silver);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
+.auth-switch a {
+  color: var(--signal-bright);
+  font-weight: 600;
 }
 
 .form-error {
@@ -394,6 +417,15 @@ th {
 @media (max-width: 760px) {
   .page-main {
     padding: 3rem 1.2rem;
+  }
+
+  /* iOS Safari zooms the page on focus for any field under 16px. Several
+     component stylesheets shrink their inputs (search, filters, checkout),
+     so this wins over all of them on phone-sized screens. */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
   }
 }
 

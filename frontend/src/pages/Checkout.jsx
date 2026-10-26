@@ -20,7 +20,32 @@ function CheckCircleIcon() {
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PHONE_RE = /^[0-9+\s()-]{7,20}$/;
 
+const EMPTY_ADDRESS = { line1: "", line2: "", city: "", state: "", postalCode: "", country: "Rwanda" };
+
+function toDeliveryInfo(address) {
+  return {
+    line1: address.line1 || "",
+    line2: address.line2 || "",
+    city: address.city || "",
+    state: address.state || "",
+    postalCode: address.postalCode || "",
+    country: address.country || "Rwanda",
+  };
+}
+
 const PROCESSING_STATES = new Set(["creating-order", "awaiting-payment", "verifying"]);
+
+// Online payment is only offered once a real Paystack public key is
+// configured (not empty, not the .env.example placeholder).
+const PAYSTACK_KEY = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || "";
+const ONLINE_PAYMENT_ENABLED = PAYSTACK_KEY.startsWith("pk_") && !PAYSTACK_KEY.includes("xxx");
+
+const PAYMENT_OPTIONS = [
+  ...(ONLINE_PAYMENT_ENABLED
+    ? [{ value: "PAYSTACK", title: "Pay online", detail: "Card or mobile money, paid now via Paystack." }]
+    : []),
+  { value: "CASH_ON_DELIVERY", title: "Cash on delivery", detail: "Pay in cash when your order arrives." },
+];
 
 export default function Checkout() {
   const { items, clearCart } = useCart();
@@ -37,20 +62,23 @@ export default function Checkout() {
   const [liveProductsById, setLiveProductsById] = useState({});
   const [liveProductsLoaded, setLiveProductsLoaded] = useState(false);
   const [customerInfo, setCustomerInfo] = useState({ name: user?.name || "", email: user?.email || "", phone: "" });
-  const [deliveryInfo, setDeliveryInfo] = useState({
-    line1: "",
-    line2: "",
-    city: "",
-    state: "",
-    postalCode: "",
-    country: "Rwanda",
-  });
+  const [deliveryInfo, setDeliveryInfo] = useState(EMPTY_ADDRESS);
   const [errors, setErrors] = useState({});
+
+  // Delivery areas set up by the admin. With none configured, delivery is
+  // free and no area is asked for (the backend applies the same rule).
+  const [zones, setZones] = useState([]);
+  const [zoneId, setZoneId] = useState("");
+  // Saved addresses: picking one fills the form; "new" means typed by hand.
+  const [savedAddresses, setSavedAddresses] = useState([]);
+  const [addressChoice, setAddressChoice] = useState("new");
+  const [saveAddress, setSaveAddress] = useState(false);
 
   const [order, setOrder] = useState(null);
   const [confirmedOrder, setConfirmedOrder] = useState(null);
   const [amountInSubunit, setAmountInSubunit] = useState(0);
   const [paystackRef, setPaystackRef] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState(PAYMENT_OPTIONS[0].value);
   const [paymentState, setPaymentState] = useState("idle");
   const [paymentMessage, setPaymentMessage] = useState("");
 
@@ -64,6 +92,24 @@ export default function Checkout() {
       navigate("/cart", { replace: true });
     }
   }, [items.length, step, navigate]);
+
+  useEffect(() => {
+    api
+      .get("/delivery-zones")
+      .then((res) => setZones(res.data))
+      .catch(() => setZones([]));
+    api
+      .get("/addresses")
+      .then((res) => {
+        setSavedAddresses(res.data);
+        const preferred = res.data.find((a) => a.isDefault) || res.data[0];
+        if (preferred) {
+          setAddressChoice(preferred.id);
+          setDeliveryInfo(toDeliveryInfo(preferred));
+        }
+      })
+      .catch(() => setSavedAddresses([]));
+  }, []);
 
   const productIdsKey = items.map((i) => i.productId).join(",");
 
@@ -87,11 +133,14 @@ export default function Checkout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productIdsKey]);
 
-  const total = items.reduce((sum, item) => {
+  const subtotal = items.reduce((sum, item) => {
     const product = liveProductsById[item.productId];
     const unitPrice = product && !product.unavailable ? Number(product.price) : Number(item.price);
     return sum + unitPrice * item.quantity;
   }, 0);
+  const selectedZone = zones.find((z) => z.id === zoneId) || null;
+  const deliveryFee = selectedZone ? Number(selectedZone.fee) : 0;
+  const total = subtotal + deliveryFee;
 
   // Same shape of check as Cart.jsx's blockingIssues — anything that would
   // make order creation fail server-side, surfaced here too so a shopper who
@@ -115,6 +164,17 @@ export default function Checkout() {
     setDeliveryInfo((prev) => ({ ...prev, [field]: value }));
   }
 
+  function chooseAddress(choice) {
+    setAddressChoice(choice);
+    setErrors({});
+    if (choice === "new") {
+      setDeliveryInfo(EMPTY_ADDRESS);
+    } else {
+      const address = savedAddresses.find((a) => a.id === choice);
+      if (address) setDeliveryInfo(toDeliveryInfo(address));
+    }
+  }
+
   function validateInfo() {
     const e = {};
     if (!customerInfo.name.trim()) e.name = "Full name is required.";
@@ -132,6 +192,7 @@ export default function Checkout() {
     if (!deliveryInfo.city.trim()) e.city = "City is required.";
     if (!deliveryInfo.state.trim()) e.state = "Province / State is required.";
     if (!deliveryInfo.country.trim()) e.country = "Country is required.";
+    if (zones.length > 0 && !selectedZone) e.zone = "Please choose a delivery area.";
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -165,7 +226,7 @@ export default function Checkout() {
     setPaymentMessage("Complete your payment in the Paystack window.");
 
     const handler = window.PaystackPop.setup({
-      key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
+      key: PAYSTACK_KEY,
       email: customerInfo.email,
       amount,
       currency: "RWF",
@@ -218,7 +279,27 @@ export default function Checkout() {
     try {
       const shippingAddress = { ...deliveryInfo, phone: customerInfo.phone, fullName: customerInfo.name };
       const orderItems = items.map((i) => ({ productId: i.productId, quantity: i.quantity }));
-      const { data } = await api.post("/orders", { items: orderItems, shippingAddress });
+      const { data } = await api.post("/orders", {
+        items: orderItems,
+        shippingAddress,
+        paymentMethod,
+        deliveryZoneId: selectedZone?.id,
+      });
+
+      // Saving the address is a convenience — never let it fail the order.
+      if (addressChoice === "new" && saveAddress) {
+        api.post("/addresses", deliveryInfo).catch(() => {});
+      }
+
+      if (paymentMethod === "CASH_ON_DELIVERY") {
+        setConfirmedOrder(data.order);
+        setPaymentState("success");
+        setPaymentMessage("");
+        clearCart();
+        setStep(3);
+        return;
+      }
+
       setOrder(data.order);
       setAmountInSubunit(data.amountInSubunit);
       setPaystackRef(data.paystackRef);
@@ -229,15 +310,20 @@ export default function Checkout() {
     }
   }
 
+  const isCashOnDelivery = paymentMethod === "CASH_ON_DELIVERY";
   const payButtonLabel =
     paymentState === "creating-order"
-      ? "Creating Order..."
+      ? isCashOnDelivery
+        ? "Placing Order..."
+        : "Creating Order..."
       : paymentState === "awaiting-payment"
       ? "Awaiting Payment..."
       : paymentState === "verifying"
       ? "Verifying Payment..."
       : order
       ? "Try Again"
+      : isCashOnDelivery
+      ? "Place Order"
       : "Place Order & Pay";
 
   return (
@@ -329,6 +415,66 @@ export default function Checkout() {
                 <section className="checkout-step-panel">
                   <h2>Delivery</h2>
 
+                  {zones.length > 0 && (
+                    <div className="checkout-field">
+                      <label htmlFor="co-zone">Delivery area</label>
+                      <select
+                        id="co-zone"
+                        value={zoneId}
+                        onChange={(e) => setZoneId(e.target.value)}
+                        aria-invalid={!!errors.zone}
+                        aria-describedby={errors.zone ? "co-zone-error" : undefined}
+                      >
+                        <option value="">Choose your area…</option>
+                        {zones.map((z) => (
+                          <option key={z.id} value={z.id}>
+                            {z.name} — {Number(z.fee) > 0 ? formatRWF(z.fee) : "Free"}
+                          </option>
+                        ))}
+                      </select>
+                      {errors.zone && (
+                        <p className="checkout-field-error" id="co-zone-error">
+                          {errors.zone}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {savedAddresses.length > 0 && (
+                    <fieldset className="checkout-payment-options checkout-saved-addresses">
+                      <legend>Deliver to</legend>
+                      {savedAddresses.map((a) => (
+                        <label key={a.id} className={`checkout-payment-option ${addressChoice === a.id ? "selected" : ""}`}>
+                          <input
+                            type="radio"
+                            name="saved-address"
+                            checked={addressChoice === a.id}
+                            onChange={() => chooseAddress(a.id)}
+                          />
+                          <span>
+                            <strong>
+                              {a.line1}
+                              {a.isDefault ? " (default)" : ""}
+                            </strong>
+                            <small>{[a.line2, a.city, a.state, a.country].filter(Boolean).join(", ")}</small>
+                          </span>
+                        </label>
+                      ))}
+                      <label className={`checkout-payment-option ${addressChoice === "new" ? "selected" : ""}`}>
+                        <input
+                          type="radio"
+                          name="saved-address"
+                          checked={addressChoice === "new"}
+                          onChange={() => chooseAddress("new")}
+                        />
+                        <span>
+                          <strong>A different address</strong>
+                          <small>Enter a new delivery address below.</small>
+                        </span>
+                      </label>
+                    </fieldset>
+                  )}
+
                   <div className="checkout-field">
                     <label htmlFor="co-line1">Address</label>
                     <input
@@ -407,6 +553,13 @@ export default function Checkout() {
                     </div>
                   </div>
 
+                  {addressChoice === "new" && (
+                    <label className="checkout-save-address">
+                      <input type="checkbox" checked={saveAddress} onChange={(e) => setSaveAddress(e.target.checked)} />
+                      Save this address for next time
+                    </label>
+                  )}
+
                   <div className="checkout-step-actions">
                     <button type="button" className="btn btn-outline" onClick={goBack}>
                       Back
@@ -439,8 +592,33 @@ export default function Checkout() {
                         {deliveryInfo.city}, {deliveryInfo.state} {deliveryInfo.postalCode}
                       </p>
                       <p>{deliveryInfo.country}</p>
+                      {selectedZone && <p>Area: {selectedZone.name}</p>}
                     </div>
                   </div>
+
+                  <fieldset className="checkout-payment-options">
+                    <legend>Payment method</legend>
+                    {PAYMENT_OPTIONS.map((opt) => (
+                      <label
+                        key={opt.value}
+                        className={`checkout-payment-option ${paymentMethod === opt.value ? "selected" : ""}`}
+                      >
+                        <input
+                          type="radio"
+                          name="payment-method"
+                          value={opt.value}
+                          checked={paymentMethod === opt.value}
+                          onChange={() => setPaymentMethod(opt.value)}
+                          // Once a Paystack order exists, retries must reuse it
+                          disabled={isProcessing || !!order}
+                        />
+                        <span>
+                          <strong>{opt.title}</strong>
+                          <small>{opt.detail}</small>
+                        </span>
+                      </label>
+                    ))}
+                  </fieldset>
 
                   {hasBlockingIssue && (
                     <p className="checkout-payment-message error" role="status" aria-live="polite">
@@ -503,11 +681,19 @@ export default function Checkout() {
               </ul>
               <div className="checkout-summary-row">
                 <span>Subtotal</span>
-                <span>{formatRWF(total)}</span>
+                <span>{formatRWF(subtotal)}</span>
               </div>
               <div className="checkout-summary-row checkout-summary-delivery">
                 <span>Delivery</span>
-                <span>Calculated at checkout</span>
+                <span>
+                  {zones.length === 0
+                    ? "Free"
+                    : !selectedZone
+                    ? "Choose an area"
+                    : deliveryFee > 0
+                    ? formatRWF(deliveryFee)
+                    : "Free"}
+                </span>
               </div>
               <div className="checkout-summary-row checkout-summary-total">
                 <span>Total</span>
@@ -537,7 +723,13 @@ export default function Checkout() {
             </div>
             <div>
               <span>Payment</span>
-              <strong>{confirmedOrder.paid ? "Paid" : "Pending"}</strong>
+              <strong>
+                {confirmedOrder.paid
+                  ? "Paid"
+                  : confirmedOrder.paymentMethod === "CASH_ON_DELIVERY"
+                  ? "Cash on delivery"
+                  : "Pending"}
+              </strong>
             </div>
             <div>
               <span>Status</span>

@@ -143,6 +143,7 @@ export default function Navbar() {
   const notificationsCtx = useNotifications();
   const unreadCount = notificationsCtx?.unreadCount || 0;
   const isAdmin = user?.role === "ADMIN";
+  const sellLink = user?.seller?.status === "APPROVED" ? { to: "/seller", label: "My Shop" } : { to: "/sell", label: "Sell" };
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -255,6 +256,8 @@ export default function Navbar() {
                     Orders
                   </Link>
                 )}
+
+                <Link to={sellLink.to}>{sellLink.label}</Link>
 
                 <a href="#about">
                   About Us
@@ -383,6 +386,7 @@ export default function Navbar() {
                   <Link to="/" onClick={closeMenu}>Shop</Link>
                   <Link to="/?category=all" onClick={closeMenu}>Categories</Link>
                   {user && <Link to="/orders" onClick={closeMenu}>Orders</Link>}
+                  <Link to={sellLink.to} onClick={closeMenu}>{sellLink.label}</Link>
                   <a href="#about" onClick={closeMenu}>About Us</a>
                   <a href="#contact" onClick={closeMenu}>Contact</a>
                 </>
@@ -398,7 +402,10 @@ export default function Navbar() {
                   </button>
                 </>
               ) : (
-                <Link to="/login" onClick={closeMenu}>Sign in</Link>
+                <>
+                  <Link to="/login" onClick={closeMenu}>Sign in</Link>
+                  <Link to="/register" onClick={closeMenu}>Create account</Link>
+                </>
               )}
             </nav>
           </div>

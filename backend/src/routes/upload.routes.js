@@ -1,7 +1,7 @@
 const express = require("express");
 const upload = require("../middleware/upload");
 const cloudinary = require("../config/cloudinary");
-const { requireAuth, requireAdmin } = require("../middleware/auth");
+const { requireAuth, requireAdminOrSeller } = require("../middleware/auth");
 
 const router = express.Router();
 
@@ -15,8 +15,8 @@ function uploadBufferToCloudinary(buffer) {
   });
 }
 
-// Admin only: upload a product image, returns the URL to store in Product.images
-router.post("/", requireAuth, requireAdmin, upload.single("image"), async (req, res, next) => {
+// Admin or approved seller: upload a product image, returns the URL to store in Product.images
+router.post("/", requireAuth, requireAdminOrSeller, upload.single("image"), async (req, res, next) => {
   if (!req.file) return res.status(400).json({ error: "No file uploaded" });
   try {
     const result = await uploadBufferToCloudinary(req.file.buffer);

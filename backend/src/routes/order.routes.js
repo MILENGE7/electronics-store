@@ -1,6 +1,6 @@
 const express = require("express");
 const {
-  createOrder, verifyPayment, getMyOrders, getOrderById, getAllOrders, updateOrderStatus,
+  createOrder, verifyPayment, getMyOrders, getOrderById, getAllOrders, updateOrderStatus, cancelMyOrder,
 } = require("../controllers/order.controller");
 const { requireAuth, requireAdmin } = require("../middleware/auth");
 
@@ -14,5 +14,6 @@ router.get("/", requireAuth, requireAdmin, getAllOrders);
 // swallowed by this ":id" wildcard.
 router.get("/:id", requireAuth, getOrderById);
 router.patch("/:id/status", requireAuth, requireAdmin, updateOrderStatus);
+router.post("/:id/cancel", requireAuth, cancelMyOrder);
 
 module.exports = router;

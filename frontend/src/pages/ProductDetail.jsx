@@ -292,6 +292,9 @@ export default function ProductDetail() {
         <div className="pd-info">
           <p className="pd-brand-category">{[displayBrand, displayCategory].filter(Boolean).join(" · ")}</p>
           <h1 className="pd-title">{displayName}</h1>
+          <p className="pd-sold-by">
+            Sold by <strong>{product.seller ? product.seller.businessName : "FK Trading"}</strong> · Delivered by FK Trading
+          </p>
 
           <div className="pd-rating-row">
             {reviewCount > 0 ? (
@@ -395,7 +398,20 @@ export default function ProductDetail() {
 
       <section className="pd-section">
         <h2>Specifications</h2>
-        <p className="catalog-empty">No additional specifications available for this product.</p>
+        {Array.isArray(product.specs) && product.specs.length > 0 ? (
+          <table className="pd-specs">
+            <tbody>
+              {product.specs.map((spec, i) => (
+                <tr key={i}>
+                  <th scope="row">{spec.name}</th>
+                  <td>{spec.value}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        ) : (
+          <p className="catalog-empty">No additional specifications available for this product.</p>
+        )}
       </section>
 
       <section className="pd-section" id="pd-reviews">

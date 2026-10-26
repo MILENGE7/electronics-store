@@ -32,8 +32,12 @@ function orderConfirmationEmail(order) {
     subject: `Order received — #${order.id.slice(0, 8)}`,
     html: `<p>Hi ${order.user.name},</p>
       <p>We've received your order <strong>#${order.id.slice(0, 8)}</strong>.
-      Total: $${Number(order.total).toFixed(2)}.</p>
-      <p>You'll get another email once payment is confirmed and your order ships.</p>`,
+      Total: RWF ${Math.round(Number(order.total)).toLocaleString("en-US")}.</p>
+      <p>${
+        order.paymentMethod === "CASH_ON_DELIVERY"
+          ? "You'll pay in cash when your order is delivered. We'll email you when it ships."
+          : "You'll get another email once payment is confirmed and your order ships."
+      }</p>`,
   });
 }
 
@@ -56,4 +60,15 @@ function orderStatusEmail(order) {
   });
 }
 
-module.exports = { sendMail, orderConfirmationEmail, orderStatusEmail };
+function passwordResetEmail(user, link) {
+  return sendMail({
+    to: user.email,
+    subject: "Reset your FK Trading password",
+    html: `<p>Hi ${user.name},</p>
+      <p>Someone (hopefully you) asked to reset your password. This link works once and expires in 1 hour:</p>
+      <p><a href="${link}">Reset my password</a></p>
+      <p>If you didn't ask for this, you can ignore this email — your password won't change.</p>`,
+  });
+}
+
+module.exports = { sendMail, orderConfirmationEmail, orderStatusEmail, passwordResetEmail };

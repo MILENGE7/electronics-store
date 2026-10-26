@@ -1,3 +1,4 @@
+const prisma = require("../config/db");
 const { verifyToken } = require("../utils/jwt");
 
 // Verifies the JWT and attaches the decoded user to req.user
@@ -29,4 +30,26 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-module.exports = { requireAuth, requireAdmin };
+// Must run after requireAuth. Checks the database rather than the JWT's
+// role claim, so approving/suspending a seller takes effect immediately
+// instead of whenever their 7-day token happens to be reissued.
+async function requireSeller(req, res, next) {
+  try {
+    const seller = await prisma.seller.findUnique({ where: { userId: req.user.id } });
+    if (!seller || seller.status !== "APPROVED") {
+      return res.status(403).json({ error: "An approved seller account is required" });
+    }
+    req.seller = seller;
+    next();
+  } catch (err) {
+    next(err);
+  }
+}
+
+// Product image uploads: the admin, or an approved seller.
+async function requireAdminOrSeller(req, res, next) {
+  if (req.user?.role === "ADMIN") return next();
+  return requireSeller(req, res, next);
+}
+
+module.exports = { requireAuth, requireAdmin, requireSeller, requireAdminOrSeller };

@@ -1,3 +1,5 @@
+const multer = require("multer");
+
 // Centralized error handler - keep all route handlers wrapped in try/catch and call next(err)
 //
 // Only errors deliberately thrown with an explicit `status` (e.g.
@@ -8,6 +10,16 @@
 // that can include internal file paths, query internals, etc. The real
 // error is still logged server-side above for debugging.
 function errorHandler(err, req, res, next) {
+  // Upload problems (file too big, unexpected field) are the client's fault.
+  if (err instanceof multer.MulterError) {
+    const message = err.code === "LIMIT_FILE_SIZE" ? "Image must be 5MB or smaller" : err.message;
+    return res.status(400).json({ error: message });
+  }
+  // Malformed JSON body
+  if (err.type === "entity.parse.failed") {
+    return res.status(400).json({ error: "Invalid JSON in request body" });
+  }
+
   console.error(err);
   const status = err.status || 500;
   const message = status < 500 && err.message ? err.message : "Internal server error";

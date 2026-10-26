@@ -62,6 +62,10 @@ The Vite dev server proxies `/api` requests to `http://localhost:4000` (see `vit
   (`window.PaystackPop`) — the backend verifies the payment server-side
   against the Paystack API before marking an order paid; it never trusts the
   client's "it succeeded" claim alone
+- **Cash on delivery**: offered at checkout always; online (Paystack) payment
+  appears only once real Paystack keys are configured. COD orders start in
+  PROCESSING and are marked paid automatically when the admin sets them to
+  DELIVERED.
 - Admin dashboards for products, categories, and order status updates
 - Product reviews: create/update/delete, restricted to verified purchases
   (a `DELIVERED` order containing the product); one review per user per product

@@ -46,6 +46,20 @@ export function getOrderTimeline(order) {
   const currentIndex = FORWARD_STAGES.indexOf(order.status);
   const reached = (stage) => currentIndex >= FORWARD_STAGES.indexOf(stage);
 
+  // Cash on delivery: payment happens at the door, so it's the last stage.
+  if (order.paymentMethod === "CASH_ON_DELIVERY") {
+    return {
+      interrupted: false,
+      stages: [
+        { key: "PLACED", label: "Order Placed", done: true },
+        { key: "PROCESSING", label: "Processing", done: reached("PROCESSING") },
+        { key: "SHIPPED", label: "Shipped", done: reached("SHIPPED") },
+        { key: "DELIVERED", label: "Delivered", done: reached("DELIVERED") },
+        { key: "PAYMENT", label: "Paid on Delivery", done: order.paid === true },
+      ],
+    };
+  }
+
   return {
     interrupted: false,
     stages: [

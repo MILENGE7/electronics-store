@@ -1,17 +1,37 @@
+const crypto = require("crypto");
 const bcrypt = require("bcrypt");
 const speakeasy = require("speakeasy");
 const qrcode = require("qrcode");
 const prisma = require("../config/db");
 const { signToken, signPendingToken, verifyToken } = require("../utils/jwt");
+const { passwordResetEmail } = require("../utils/mailer");
+
+const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
+const hashToken = (token) => crypto.createHash("sha256").update(token).digest("hex");
+
+// Emails are stored lowercase so "John@x.com" and "john@x.com" are the same
+// account. Lookups are case-insensitive too, for accounts created before
+// this normalisation existed.
+function normalizeEmail(email) {
+  return typeof email === "string" ? email.trim().toLowerCase() : "";
+}
+
+function findUserByEmail(email) {
+  return prisma.user.findFirst({ where: { email: { equals: email, mode: "insensitive" } } });
+}
 
 async function register(req, res, next) {
   try {
-    const { email, password, name } = req.body;
+    const { password, name } = req.body;
+    const email = normalizeEmail(req.body.email);
     if (!email || !password || !name) {
       return res.status(400).json({ error: "email, password, and name are required" });
     }
+    if (String(password).length < 8) {
+      return res.status(400).json({ error: "Password must be at least 8 characters" });
+    }
 
-    const existing = await prisma.user.findUnique({ where: { email } });
+    const existing = await findUserByEmail(email);
     if (existing) return res.status(409).json({ error: "Email already registered" });
 
     const hashed = await bcrypt.hash(password, 10);
@@ -34,8 +54,10 @@ async function register(req, res, next) {
 // must be exchanged via /auth/2fa/login-verify along with a TOTP code.
 async function login(req, res, next) {
   try {
-    const { email, password } = req.body;
-    const user = await prisma.user.findUnique({ where: { email } });
+    const { password } = req.body;
+    const email = normalizeEmail(req.body.email);
+    if (!email || !password) return res.status(401).json({ error: "Invalid credentials" });
+    const user = await findUserByEmail(email);
     if (!user) return res.status(401).json({ error: "Invalid credentials" });
 
     const match = await bcrypt.compare(password, user.password);
@@ -178,7 +200,7 @@ async function me(req, res, next) {
   try {
     const user = await prisma.user.findUnique({
       where: { id: req.user.id },
-      select: { id: true, email: true, name: true, role: true, twoFactorEnabled: true, addresses: true, createdAt: true },
+      select: { id: true, email: true, name: true, role: true, twoFactorEnabled: true, addresses: true, createdAt: true, seller: { select: { id: true, status: true, businessName: true } } },
     });
     res.json(user);
   } catch (err) {
@@ -222,7 +244,7 @@ async function updateProfile(req, res, next) {
     const updated = await prisma.user.update({
       where: { id: req.user.id },
       data,
-      select: { id: true, email: true, name: true, role: true, twoFactorEnabled: true, addresses: true, createdAt: true },
+      select: { id: true, email: true, name: true, role: true, twoFactorEnabled: true, addresses: true, createdAt: true, seller: { select: { id: true, status: true, businessName: true } } },
     });
     res.json(updated);
   } catch (err) {
@@ -230,4 +252,59 @@ async function updateProfile(req, res, next) {
   }
 }
 
-module.exports = { register, login, verifyLogin2FA, setup2FA, confirm2FA, disable2FA, me, updateProfile };
+// Step 1 of password reset: email a one-time link. Always answers the same
+// way whether or not the email exists, so this can't be used to find out
+// who has an account.
+async function forgotPassword(req, res, next) {
+  try {
+    const email = normalizeEmail(req.body.email);
+    const user = email ? await findUserByEmail(email) : null;
+
+    if (user) {
+      const token = crypto.randomBytes(32).toString("hex");
+      await prisma.passwordResetToken.create({
+        data: { userId: user.id, tokenHash: hashToken(token), expiresAt: new Date(Date.now() + RESET_TOKEN_TTL_MS) },
+      });
+      const link = `${process.env.CLIENT_URL}/reset-password?token=${token}`;
+      passwordResetEmail(user, link); // fire-and-forget
+
+      // Local development without a mail server: print the link instead.
+      if (process.env.NODE_ENV !== "production" && !process.env.SMTP_HOST) {
+        console.log(`[dev] Password reset link for ${user.email}: ${link}`);
+      }
+    }
+
+    res.json({ message: "If an account exists for that email, a reset link has been sent." });
+  } catch (err) {
+    next(err);
+  }
+}
+
+// Step 2: set a new password with the token from the email. Tokens are
+// single-use and expire after an hour; only their hash is stored.
+async function resetPassword(req, res, next) {
+  try {
+    const { token, password } = req.body;
+    if (typeof token !== "string" || !token) return res.status(400).json({ error: "Reset link is invalid" });
+    if (typeof password !== "string" || password.length < 8) {
+      return res.status(400).json({ error: "Password must be at least 8 characters" });
+    }
+
+    const record = await prisma.passwordResetToken.findUnique({ where: { tokenHash: hashToken(token) } });
+    if (!record || record.usedAt || record.expiresAt < new Date()) {
+      return res.status(400).json({ error: "This reset link is invalid or has expired. Please request a new one." });
+    }
+
+    const hashed = await bcrypt.hash(password, 10);
+    await prisma.$transaction([
+      prisma.user.update({ where: { id: record.userId }, data: { password: hashed } }),
+      // Burn this token and any other outstanding ones for the account.
+      prisma.passwordResetToken.updateMany({ where: { userId: record.userId, usedAt: null }, data: { usedAt: new Date() } }),
+    ]);
+    res.json({ message: "Your password has been reset. You can now sign in." });
+  } catch (err) {
+    next(err);
+  }
+}
+
+module.exports = { forgotPassword, resetPassword, register, login, verifyLogin2FA, setup2FA, confirm2FA, disable2FA, me, updateProfile };

@@ -1,0 +1,307 @@
+/* =========================================
+   SHARED DASHBOARD PIECES (admin + seller)
+========================================= */
+
+.dash-page h1 {
+  margin: 0 0 0.4rem;
+}
+
+.dash-sub {
+  margin: 0 0 1.6rem;
+  color: var(--silver);
+  font-size: 0.95rem;
+}
+
+.dash-section {
+  margin: 0 0 2rem;
+  padding: 1.3rem;
+  border: 1px solid var(--hairline);
+  border-radius: 16px;
+  background: var(--ink-soft);
+}
+
+.dash-section > h2 {
+  margin: 0 0 1rem;
+  font-size: 1.05rem;
+}
+
+.dash-section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-bottom: 1rem;
+}
+
+.dash-section-head h2 {
+  margin: 0;
+  font-size: 1.05rem;
+}
+
+.dash-section-head a {
+  color: var(--signal-bright);
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+/* ---- Stat tiles ---- */
+
+.dash-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+  gap: 0.9rem;
+  margin-bottom: 2rem;
+}
+
+.dash-stat {
+  padding: 1rem 1.1rem;
+  border: 1px solid var(--hairline);
+  border-radius: 14px;
+  background: var(--ink-soft);
+}
+
+.dash-stat-label {
+  display: block;
+  color: var(--silver);
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.dash-stat-value {
+  display: block;
+  margin-top: 0.35rem;
+  color: white;
+  font-size: 1.45rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.dash-stat-note {
+  display: block;
+  margin-top: 0.2rem;
+  color: var(--silver);
+  font-size: 0.8rem;
+}
+
+/* ---- Simple lists ---- */
+
+.dash-list {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dash-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  min-height: 44px;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid var(--hairline);
+}
+
+.dash-list li:last-child {
+  border-bottom: none;
+}
+
+.dash-list-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.dash-list-main strong,
+.dash-list-main span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dash-list-main span {
+  color: var(--silver);
+  font-size: 0.82rem;
+}
+
+.dash-thumb {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--navy-light);
+}
+
+.dash-empty {
+  margin: 0;
+  color: var(--silver);
+  font-size: 0.9rem;
+}
+
+/* ---- Two-column layout that stacks on phones ---- */
+
+.dash-columns {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.2rem;
+}
+
+.dash-columns > .dash-section {
+  margin-bottom: 0;
+}
+
+.dash-columns + * {
+  margin-top: 2rem;
+}
+
+/* ---- Filters row ---- */
+
+.dash-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  align-items: flex-end;
+  margin-bottom: 1.2rem;
+}
+
+.dash-filters label {
+  display: grid;
+  gap: 0.25rem;
+  color: var(--silver);
+  font-size: 0.75rem;
+}
+
+.dash-filters input[type="search"] {
+  min-width: min(260px, 100%);
+}
+
+/* ---- Badges ---- */
+
+.badge {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border: 1px solid currentColor;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-green { color: #34d399; }
+.badge-amber { color: #fbbf24; }
+.badge-red { color: #ff6b6b; }
+.badge-blue { color: #60a5fa; }
+.badge-grey { color: var(--silver); }
+
+/* ---- Forms inside dashboards ---- */
+
+.dash-form {
+  display: grid;
+  gap: 0.8rem;
+  max-width: 560px;
+}
+
+.dash-form-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.8rem;
+}
+
+.dash-form label {
+  display: grid;
+  gap: 0.3rem;
+  color: var(--silver);
+  font-size: 0.8rem;
+}
+
+.dash-form textarea {
+  min-height: 90px;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid rgba(148, 163, 184, 0.3);
+  border-radius: 8px;
+  background: #081827;
+  color: white;
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  resize: vertical;
+}
+
+.dash-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.dash-success {
+  margin: 0;
+  color: #34d399;
+  font-size: 0.88rem;
+}
+
+/* ---- Pagination ---- */
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.8rem;
+  margin-top: 1.2rem;
+  color: var(--silver);
+  font-size: 0.88rem;
+}
+
+/* ---- Small-screen tweaks ---- */
+
+@media (max-width: 600px) {
+  .dash-section {
+    padding: 1rem;
+  }
+
+  .dash-stat-value {
+    font-size: 1.2rem;
+  }
+
+  .dash-filters > * {
+    flex: 1 1 140px;
+  }
+}
+
+/* ---- Print (packing slips) ----
+   Hides the site chrome so only the slip prints, in black on white. */
+
+.print-only {
+  display: none;
+}
+
+@media print {
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  nav,
+  header,
+  .nav,
+  .navbar,
+  .admin-subnav,
+  .no-print,
+  .comparison-bar {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block;
+  }
+
+  .packing-slip,
+  .packing-slip * {
+    color: black !important;
+    background: white !important;
+    border-color: #999 !important;
+    box-shadow: none !important;
+  }
+}

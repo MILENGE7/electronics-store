@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function Login() {
@@ -65,6 +65,12 @@ export default function Login() {
           <input placeholder="Password" type="password" value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })} required />
           <button type="submit" className="btn btn-primary">Sign in</button>
+          <p className="auth-switch">
+            <Link to="/forgot-password">Forgot your password?</Link>
+          </p>
+          <p className="auth-switch">
+            New to FK Trading? <Link to="/register">Create an account</Link>
+          </p>
         </form>
       </div>
     </div>

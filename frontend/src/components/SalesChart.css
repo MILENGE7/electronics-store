@@ -1,0 +1,78 @@
+.sales-chart-plot {
+  position: relative;
+  padding-left: 0;
+}
+
+.sales-chart-plot svg {
+  display: block;
+  width: 100%;
+  height: 200px;
+  overflow: visible;
+}
+
+.sales-chart-grid {
+  stroke: var(--hairline);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.sales-chart-bar {
+  fill: var(--signal-bright);
+  opacity: 0.85;
+  transition: opacity 0.15s ease;
+}
+
+.sales-chart-bar.active {
+  opacity: 1;
+}
+
+.sales-chart-axis-top {
+  position: absolute;
+  top: -4px;
+  left: 0;
+  color: var(--silver);
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+}
+
+.sales-chart-axis-x {
+  display: flex;
+  justify-content: space-between;
+  margin-top: -18px;
+  color: var(--silver);
+  font-size: 0.72rem;
+  pointer-events: none;
+}
+
+.sales-chart-tooltip {
+  position: absolute;
+  top: 0;
+  transform: translate(-50%, -100%);
+  display: grid;
+  gap: 0.1rem;
+  min-width: 120px;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--hairline);
+  border-radius: 10px;
+  background: var(--navy);
+  color: var(--graphite);
+  font-size: 0.8rem;
+  white-space: nowrap;
+  pointer-events: none;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.4);
+  z-index: 2;
+}
+
+.sales-chart-tooltip strong {
+  color: white;
+}
+
+.visually-hidden {
+  position: absolute !important;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

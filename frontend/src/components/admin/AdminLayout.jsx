@@ -14,6 +14,8 @@ const ADMIN_TABS = [
   { to: "/admin/products", label: "Products" },
   { to: "/admin/categories", label: "Categories" },
   { to: "/admin/orders", label: "Orders" },
+  { to: "/admin/sellers", label: "Sellers" },
+  { to: "/admin/settings", label: "Settings" },
   { to: "/admin/security", label: "Security" },
 ];
 

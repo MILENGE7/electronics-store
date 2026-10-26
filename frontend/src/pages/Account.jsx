@@ -8,6 +8,7 @@ import { useNotifications } from "../context/NotificationsContext";
 import { formatRWF } from "../utils/currency";
 import { orderStatusLabel, orderStatusClass } from "../utils/orderStatus";
 import RecentlyViewedSection from "../components/RecentlyViewedSection";
+import AddressBook from "../components/AddressBook";
 import "../components/Skeletons.css";
 import "../pages/Home.css"; // RecentlyViewedSection relies on Home's .strip-* classes
 import "../pages/Checkout.css"; // reuses .checkout-field/.checkout-field-error for the edit form
@@ -315,6 +316,10 @@ export default function Account() {
             <CompareIcon />
             <span>Compare Products</span>
           </Link>
+          <Link to="/sell" className="account-quickaction">
+            <ShopIcon />
+            <span>Sell on FK Trading</span>
+          </Link>
         </div>
       </section>
 
@@ -474,7 +479,10 @@ export default function Account() {
             </p>
 
             <h3 className="account-subheading">Password</h3>
-            <p className="account-edit-note">Password changes aren't available yet.</p>
+            <p className="account-edit-note">
+              To change your password, <Link to="/forgot-password">request a reset link</Link> — we'll email it to{" "}
+              {me.email}.
+            </p>
 
             <button type="button" className="btn btn-outline account-signout-btn" onClick={logout}>
               Sign Out
@@ -486,26 +494,8 @@ export default function Account() {
       <section className="account-section" id="addresses">
         <h2>Addresses</h2>
 
-        {me && (
-          <>
-            {me.addresses?.length ? (
-              <ul className="account-address-list">
-                {me.addresses.map((a) => (
-                  <li key={a.id} className="account-address-item">
-                    <span>
-                      {a.line1}
-                      {a.line2 ? `, ${a.line2}` : ""}, {a.city}, {a.state} {a.postalCode}, {a.country}
-                    </span>
-                    {a.isDefault && <span className="account-address-default">Default</span>}
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="catalog-empty">No saved addresses yet — addresses you enter at checkout are used per-order.</p>
-            )}
-            <p className="account-edit-note">Address editing isn't available yet — this is on our roadmap.</p>
-          </>
-        )}
+        <AddressBook />
+        <p className="account-edit-note">Your default address is filled in for you at checkout.</p>
       </section>
     </div>
   );

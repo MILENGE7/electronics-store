@@ -469,3 +469,44 @@
     align-items: flex-start;
   }
 }
+
+/* ADDRESS BOOK */
+
+.account-address-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-shrink: 0;
+}
+
+.account-address-btn {
+  padding: 0.25rem 0.6rem;
+  border: 1px solid var(--hairline);
+  border-radius: 8px;
+  background: none;
+  color: var(--silver);
+  font-size: 0.78rem;
+  cursor: pointer;
+}
+
+.account-address-btn:hover:not(:disabled) {
+  color: white;
+  border-color: var(--signal);
+}
+
+.account-address-btn.danger:hover:not(:disabled) {
+  color: #ff8a76;
+  border-color: #ff4d67;
+}
+
+.account-address-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+@media (max-width: 600px) {
+  .account-address-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

@@ -1,74 +1,98 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import api from "../../api/client";
 import { formatRWF } from "../../utils/currency";
+import ProductForm, { productToForm } from "../../components/ProductForm";
+import "../../styles/dashboard.css";
 
-const emptyForm = { name: "", description: "", price: "", stock: "", categoryId: "", brand: "", images: [] };
+// Inline stock editor so restocking doesn't mean opening the whole form.
+function StockCell({ product, lowStockThreshold, onSaved }) {
+  const [value, setValue] = useState(String(product.stock));
+  const [error, setError] = useState("");
+  const changed = value !== String(product.stock);
+
+  async function save() {
+    setError("");
+    try {
+      await api.put(`/products/${product.id}`, { stock: Number(value) });
+      onSaved();
+    } catch (err) {
+      setError(err.response?.data?.error || "Not saved");
+    }
+  }
+
+  return (
+    <div style={{ display: "flex", gap: "0.4rem", alignItems: "center" }}>
+      <input
+        type="number"
+        min="0"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+        onKeyDown={(e) => e.key === "Enter" && changed && save()}
+        aria-label={`Stock for ${product.name}`}
+        style={{ width: "80px", padding: "0.45rem 0.6rem" }}
+      />
+      {changed && (
+        <button type="button" className="btn btn-primary" onClick={save} style={{ padding: "0.4rem 0.7rem" }}>
+          Save
+        </button>
+      )}
+      {!changed && product.stock <= lowStockThreshold && (
+        <span className={`badge ${product.stock === 0 ? "badge-red" : "badge-amber"}`}>{product.stock === 0 ? "Out" : "Low"}</span>
+      )}
+      {error && <span className="form-error">{error}</span>}
+    </div>
+  );
+}
 
 export default function AdminProducts() {
+  const [params, setParams] = useSearchParams();
+  const lowStockOnly = params.get("filter") === "low-stock";
   const [products, setProducts] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [form, setForm] = useState(emptyForm);
-  const [uploading, setUploading] = useState(false);
+  const [lowStockThreshold, setLowStockThreshold] = useState(5);
+  const [editing, setEditing] = useState(null); // product being edited, or null for "add new"
+  const [formKey, setFormKey] = useState(0); // bump to reset the form
+  const [search, setSearch] = useState("");
   const [error, setError] = useState("");
   const [loadError, setLoadError] = useState("");
 
   function loadProducts() {
+    setLoadError("");
     return api
       .get("/products", { params: { limit: 100 } })
       .then((res) => setProducts(res.data.products))
       .catch(() => setLoadError("Unable to load products."));
   }
-  function loadCategories() {
-    return api
-      .get("/categories")
-      .then((res) => setCategories(res.data))
-      .catch(() => setLoadError("Unable to load categories."));
+
+  useEffect(() => {
+    loadProducts();
+    api
+      .get("/admin/settings")
+      .then((res) => setLowStockThreshold(res.data.lowStockThreshold))
+      .catch(() => {});
+  }, []);
+
+  async function handleSubmit(payload) {
+    if (editing) await api.put(`/products/${editing.id}`, payload);
+    else await api.post("/products", payload);
+    setEditing(null);
+    setFormKey((k) => k + 1);
+    loadProducts();
   }
 
-  function loadAll() {
-    setLoadError("");
-    Promise.all([loadProducts(), loadCategories()]);
+  function startEdit(p) {
+    setEditing(p);
+    setFormKey((k) => k + 1);
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
-  useEffect(loadAll, []);
-
-  async function handleImageSelect(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-    setUploading(true);
-    setError("");
-    try {
-      const formData = new FormData();
-      formData.append("image", file);
-      const { data } = await api.post("/uploads", formData);
-      setForm((f) => ({ ...f, images: [...f.images, data.url] }));
-    } catch (err) {
-      setError(err.response?.data?.error || "Upload failed");
-    } finally {
-      setUploading(false);
-      e.target.value = "";
-    }
-  }
-
-  function removeImage(url) {
-    setForm((f) => ({ ...f, images: f.images.filter((i) => i !== url) }));
-  }
-
-  async function handleCreate(e) {
-    e.preventDefault();
-    setError("");
-    try {
-      await api.post("/products", { ...form, price: Number(form.price), stock: Number(form.stock) });
-      setForm(emptyForm);
-      loadProducts();
-    } catch (err) {
-      setError(err.response?.data?.error || "Could not create product");
-    }
+  function cancelEdit() {
+    setEditing(null);
+    setFormKey((k) => k + 1);
   }
 
   async function handleDelete(id, name) {
-    if (!window.confirm(`Delete "${name}"? This cannot be undone.`)) return;
+    if (!window.confirm(`Delete "${name}"? It will be hidden from the shop.`)) return;
     setError("");
     try {
       await api.delete(`/products/${id}`);
@@ -78,72 +102,84 @@ export default function AdminProducts() {
     }
   }
 
+  const term = search.trim().toLowerCase();
+  const visible = products
+    .filter((p) => !lowStockOnly || p.stock <= lowStockThreshold)
+    .filter((p) => !term || p.name.toLowerCase().includes(term) || (p.brand || "").toLowerCase().includes(term))
+    .sort((a, b) => (lowStockOnly ? a.stock - b.stock : 0));
+
   return (
-    <div className="page-main">
-      <h1>Manage Products</h1>
+    <div className="page-main dash-page">
+      <h1>Products</h1>
+      <p className="dash-sub">Your products and every approved seller&apos;s. Edit stock straight from the list.</p>
 
       {loadError && (
         <p className="form-error">
           {loadError}{" "}
-          <button type="button" className="btn btn-outline" onClick={loadAll} style={{ marginLeft: "0.5rem" }}>
+          <button type="button" className="btn btn-outline" onClick={loadProducts} style={{ marginLeft: "0.5rem" }}>
             Try Again
           </button>
         </p>
       )}
 
-      <form onSubmit={handleCreate} className="auth-form" style={{ maxWidth: "480px", marginBottom: "2.5rem" }}>
-        {error && <p className="form-error">{error}</p>}
-        <input placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
-        <input placeholder="Description" value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} required />
-        <input placeholder="Price (RWF)" type="number" step="1" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required />
-        <input placeholder="Stock" type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} required />
+      <section className="dash-section">
+        <ProductForm
+          key={formKey}
+          initial={editing ? productToForm(editing) : undefined}
+          title={editing ? `Edit: ${editing.name}` : "Add a product"}
+          submitLabel={editing ? "Save changes" : "Add product"}
+          onSubmit={handleSubmit}
+          onCancel={editing ? cancelEdit : undefined}
+        />
+      </section>
 
-        {categories.length === 0 ? (
-          <p className="form-error">
-            No categories yet — <Link to="/admin/categories">create one first</Link>.
-          </p>
-        ) : (
-          <select value={form.categoryId} onChange={(e) => setForm({ ...form, categoryId: e.target.value })} required>
-            <option value="" disabled>Select a category</option>
-            {categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-        )}
+      <div className="dash-filters">
+        <input type="search" placeholder="Search products" value={search} onChange={(e) => setSearch(e.target.value)} aria-label="Search products" />
+        <button
+          type="button"
+          className={`btn ${lowStockOnly ? "btn-primary" : "btn-outline"}`}
+          onClick={() => setParams(lowStockOnly ? {} : { filter: "low-stock" })}
+        >
+          Low stock only (≤ {lowStockThreshold})
+        </button>
+      </div>
 
-        <input placeholder="Brand" value={form.brand} onChange={(e) => setForm({ ...form, brand: e.target.value })} />
+      {error && <p className="form-error">{error}</p>}
+      {visible.length === 0 && !loadError && <p className="dash-empty">No products here.</p>}
 
-        <label style={{ fontFamily: "var(--font-mono)", fontSize: "0.75rem", textTransform: "uppercase", color: "var(--silver)" }}>
-          Product images
-        </label>
-        <input type="file" accept="image/*" onChange={handleImageSelect} disabled={uploading} />
-        {uploading && <p className="catalog-empty">Uploading...</p>}
-        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap" }}>
-          {form.images.map((url) => (
-            <div key={url} style={{ position: "relative" }}>
-              <img src={url} alt="" width={72} height={72} style={{ objectFit: "cover", borderRadius: "8px" }} />
-              <button type="button" onClick={() => removeImage(url)} className="btn btn-outline" style={{ position: "absolute", top: -8, right: -8, padding: "0.1rem 0.4rem", fontSize: "0.7rem" }}>x</button>
-            </div>
-          ))}
+      {visible.length > 0 && (
+        <div className="table-scroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Image</th>
+                <th>Name</th>
+                <th>Seller</th>
+                <th>Price</th>
+                <th>Stock</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {visible.map((p) => (
+                <tr key={p.id}>
+                  <td>{p.images?.[0] && <img src={p.images[0]} alt="" width={40} height={40} style={{ objectFit: "cover", borderRadius: "6px" }} />}</td>
+                  <td>{p.name}</td>
+                  <td>{p.seller ? p.seller.businessName : "FK Trading"}</td>
+                  <td className="price">{formatRWF(p.price)}</td>
+                  <td>
+                    <StockCell key={p.stock} product={p} lowStockThreshold={lowStockThreshold} onSaved={loadProducts} />
+                  </td>
+                  <td style={{ whiteSpace: "nowrap" }}>
+                    <button onClick={() => startEdit(p)} className="btn btn-outline" style={{ marginRight: "0.4rem" }}>Edit</button>
+                    <button onClick={() => handleDelete(p.id, p.name)} className="btn btn-outline">Delete</button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
-
-        <button type="submit" className="btn btn-primary">Add product</button>
-      </form>
-
-      <table>
-        <thead>
-          <tr><th>Image</th><th>Name</th><th>Price</th><th>Stock</th><th></th></tr>
-        </thead>
-        <tbody>
-          {products.map((p) => (
-            <tr key={p.id}>
-              <td>{p.images?.[0] && <img src={p.images[0]} alt="" width={40} height={40} style={{ objectFit: "cover", borderRadius: "6px" }} />}</td>
-              <td>{p.name}</td>
-              <td className="price">{formatRWF(p.price)}</td>
-              <td>{p.stock}</td>
-              <td><button onClick={() => handleDelete(p.id, p.name)} className="btn btn-outline">Delete</button></td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      )}
     </div>
   );
 }

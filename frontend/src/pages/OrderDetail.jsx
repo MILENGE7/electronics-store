@@ -60,6 +60,9 @@ export default function OrderDetail() {
   const [loadError, setLoadError] = useState(false);
   const [retryKey, setRetryKey] = useState(0);
   const [reordered, setReordered] = useState(false);
+  const [confirmingCancel, setConfirmingCancel] = useState(false);
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState("");
 
   useEffect(() => {
     setLoading(true);
@@ -101,6 +104,23 @@ export default function OrderDetail() {
     });
     setReordered(true);
     setTimeout(() => setReordered(false), 2500);
+  }
+
+  // Same rule as the backend: unpaid orders that haven't shipped yet.
+  const canCancel = order && !order.paid && ["PENDING", "PROCESSING"].includes(order.status);
+
+  async function handleCancel() {
+    setCancelling(true);
+    setCancelError("");
+    try {
+      const { data } = await api.post(`/orders/${id}/cancel`);
+      setOrder(data);
+      setConfirmingCancel(false);
+    } catch (err) {
+      setCancelError(err.response?.data?.error || "Unable to cancel this order. Please try again.");
+    } finally {
+      setCancelling(false);
+    }
   }
 
   function retry() {
@@ -237,13 +257,57 @@ export default function OrderDetail() {
             <div className="order-summary-row">
               <span>Payment</span>
               <span className={order.paid ? "order-payment-paid" : "order-payment-pending"}>
-                {order.paid ? "Payment Successful" : "Payment Pending"}
+                {order.paid
+                  ? "Payment Successful"
+                  : order.paymentMethod === "CASH_ON_DELIVERY"
+                  ? "Pay on Delivery"
+                  : "Payment Pending"}
               </span>
+            </div>
+            <div className="order-summary-row">
+              <span>Subtotal</span>
+              <span>{formatRWF(Number(order.total) - Number(order.deliveryFee || 0))}</span>
+            </div>
+            <div className="order-summary-row">
+              <span>Delivery{order.deliveryZone ? ` (${order.deliveryZone.name})` : ""}</span>
+              <span>{Number(order.deliveryFee) > 0 ? formatRWF(order.deliveryFee) : "Free"}</span>
             </div>
             <div className="order-summary-row order-summary-total">
               <span>Total</span>
               <span className="price">{formatRWF(order.total)}</span>
             </div>
+
+            {canCancel && (
+              <div className="order-cancel">
+                {confirmingCancel ? (
+                  <>
+                    <p>Cancel this order? This can't be undone.</p>
+                    <div className="order-cancel-actions">
+                      <button type="button" className="btn btn-primary" onClick={handleCancel} disabled={cancelling}>
+                        {cancelling ? "Cancelling…" : "Yes, cancel order"}
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-outline"
+                        onClick={() => setConfirmingCancel(false)}
+                        disabled={cancelling}
+                      >
+                        Keep order
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <button type="button" className="btn btn-outline" onClick={() => setConfirmingCancel(true)}>
+                    Cancel Order
+                  </button>
+                )}
+                {cancelError && (
+                  <p className="order-cancel-error" role="alert">
+                    {cancelError}
+                  </p>
+                )}
+              </div>
+            )}
           </section>
 
           <section className="order-detail-section">

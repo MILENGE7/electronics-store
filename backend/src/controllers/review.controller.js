@@ -8,7 +8,7 @@ async function upsertReview(req, res, next) {
     const { productId } = req.params;
     const { rating, comment } = req.body;
 
-    if (!rating || rating < 1 || rating > 5) {
+    if (!Number.isInteger(rating) || rating < 1 || rating > 5) {
       return res.status(400).json({ error: "rating must be an integer between 1 and 5" });
     }
 

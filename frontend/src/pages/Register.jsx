@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function Register() {
@@ -29,9 +29,12 @@ export default function Register() {
             onChange={(e) => setForm({ ...form, name: e.target.value })} required />
           <input placeholder="Email" type="email" value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })} required />
-          <input placeholder="Password" type="password" value={form.password}
+          <input placeholder="Password (at least 8 characters)" type="password" minLength={8} autoComplete="new-password" value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })} required />
           <button type="submit" className="btn btn-primary">Create account</button>
+          <p className="auth-switch">
+            Already have an account? <Link to="/login">Sign in</Link>
+          </p>
         </form>
       </div>
     </div>

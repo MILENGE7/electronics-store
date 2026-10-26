@@ -17,11 +17,18 @@ const Register = lazy(() => import("./pages/Register"));
 const Account = lazy(() => import("./pages/Account"));
 const Wishlist = lazy(() => import("./pages/Wishlist"));
 const Notifications = lazy(() => import("./pages/Notifications"));
+const ForgotPassword = lazy(() => import("./pages/ForgotPassword"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const Sell = lazy(() => import("./pages/Sell"));
+const SellerDashboard = lazy(() => import("./pages/SellerDashboard"));
 
 const Dashboard = lazy(() => import("./pages/admin/Dashboard"));
 const AdminProducts = lazy(() => import("./pages/admin/Products"));
 const AdminCategories = lazy(() => import("./pages/admin/Categories"));
 const AdminOrders = lazy(() => import("./pages/admin/Orders"));
+const AdminOrderDetail = lazy(() => import("./pages/admin/OrderDetail"));
+const AdminSellers = lazy(() => import("./pages/admin/Sellers"));
+const AdminSettings = lazy(() => import("./pages/admin/Settings"));
 const AdminSecurity = lazy(() => import("./pages/admin/Security"));
 
 function Loading() {
@@ -52,6 +59,30 @@ export default function App() {
             <Route path="/cart" element={<CustomerRoute><Cart /></CustomerRoute>} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword />} />
+
+            <Route
+              path="/sell"
+              element={
+                <CustomerRoute>
+                  <ProtectedRoute>
+                    <Sell />
+                  </ProtectedRoute>
+                </CustomerRoute>
+              }
+            />
+
+            <Route
+              path="/seller"
+              element={
+                <CustomerRoute>
+                  <ProtectedRoute>
+                    <SellerDashboard />
+                  </ProtectedRoute>
+                </CustomerRoute>
+              }
+            />
 
             <Route
               path="/checkout"
@@ -156,6 +187,39 @@ export default function App() {
                 <ProtectedRoute adminOnly>
                   <AdminLayout>
                     <AdminOrders />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/admin/orders/:id"
+              element={
+                <ProtectedRoute adminOnly>
+                  <AdminLayout>
+                    <AdminOrderDetail />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/admin/sellers"
+              element={
+                <ProtectedRoute adminOnly>
+                  <AdminLayout>
+                    <AdminSellers />
+                  </AdminLayout>
+                </ProtectedRoute>
+              }
+            />
+
+            <Route
+              path="/admin/settings"
+              element={
+                <ProtectedRoute adminOnly>
+                  <AdminLayout>
+                    <AdminSettings />
                   </AdminLayout>
                 </ProtectedRoute>
               }

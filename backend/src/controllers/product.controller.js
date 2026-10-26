@@ -1,5 +1,27 @@
 const prisma = require("../config/db");
 
+// A product is shown in the shop only if it's active and belongs either to
+// FK Trading itself (no seller) or to a currently approved seller — so
+// suspending a seller hides their whole catalogue at once.
+const VISIBLE_PRODUCT = {
+  isActive: true,
+  OR: [{ sellerId: null }, { seller: { status: "APPROVED" } }],
+};
+
+// Public-safe seller fields shown as "Sold by ..." on product pages.
+const SELLER_PUBLIC = { select: { id: true, businessName: true } };
+
+// [{ name, value }] rows, trimmed, empty rows dropped, capped to keep payloads sane.
+function sanitizeSpecs(specs) {
+  if (!Array.isArray(specs)) {
+    throw Object.assign(new Error("specs must be a list of { name, value } rows"), { status: 400 });
+  }
+  return specs
+    .map((row) => ({ name: String(row?.name ?? "").trim().slice(0, 80), value: String(row?.value ?? "").trim().slice(0, 200) }))
+    .filter((row) => row.name && row.value)
+    .slice(0, 40);
+}
+
 // Whitelists and lightly validates the fields an admin may set on a product.
 // Used by both createProduct (partial: false — all required fields must be
 // present) and updateProduct (partial: true — only touch what's provided).
@@ -33,6 +55,10 @@ function sanitizeProductInput(body, { partial = false } = {}) {
     data.images = Array.isArray(body.images) ? body.images : [];
   }
 
+  if (body.specs !== undefined) {
+    data.specs = sanitizeSpecs(body.specs);
+  }
+
   if (body.isActive !== undefined) {
     data.isActive = Boolean(body.isActive);
   }
@@ -51,29 +77,39 @@ function sanitizeProductInput(body, { partial = false } = {}) {
 // Public: list products with optional filters (category, search, price range) + pagination
 async function listProducts(req, res, next) {
   try {
-    const { category, search, minPrice, maxPrice, page = 1, limit = 20 } = req.query;
+    const { category, search } = req.query;
+    const toPrice = (v) => (v === undefined || v === "" || Number.isNaN(Number(v)) ? undefined : Number(v));
+    const min = toPrice(req.query.minPrice);
+    const max = toPrice(req.query.maxPrice);
+    // Clamp paging input: a garbage value used to crash the query (500) and
+    // an unbounded limit let one request pull the entire catalogue.
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 20));
+
+    // ?seller=fk → FK Trading's own products; ?seller=<id> → one seller's shop
+    const sellerFilter =
+      req.query.seller === "fk" ? { sellerId: null } : req.query.seller ? { sellerId: String(req.query.seller) } : {};
 
     const where = {
-      isActive: true,
+      ...VISIBLE_PRODUCT,
+      ...sellerFilter,
       ...(category && { category: { name: category } }),
       ...(search && { name: { contains: search, mode: "insensitive" } }),
-      ...(minPrice || maxPrice
-        ? { price: { gte: minPrice ? Number(minPrice) : undefined, lte: maxPrice ? Number(maxPrice) : undefined } }
-        : {}),
+      ...(min !== undefined || max !== undefined ? { price: { gte: min, lte: max } } : {}),
     };
 
     const [products, total] = await Promise.all([
       prisma.product.findMany({
         where,
-        include: { category: true },
-        skip: (Number(page) - 1) * Number(limit),
-        take: Number(limit),
+        include: { category: true, seller: SELLER_PUBLIC },
+        skip: (page - 1) * limit,
+        take: limit,
         orderBy: { createdAt: "desc" },
       }),
       prisma.product.count({ where }),
     ]);
 
-    res.json({ products, total, page: Number(page), limit: Number(limit) });
+    res.json({ products, total, page, limit });
   } catch (err) {
     next(err);
   }
@@ -83,9 +119,15 @@ async function getProduct(req, res, next) {
   try {
     const product = await prisma.product.findUnique({
       where: { id: req.params.id },
-      include: { category: true, reviews: { include: { user: { select: { name: true } } } } },
+      include: {
+        category: true,
+        seller: { select: { id: true, businessName: true, status: true } },
+        reviews: { include: { user: { select: { name: true } } } },
+      },
     });
-    if (!product) return res.status(404).json({ error: "Product not found" });
+    const sellerHidden = product?.seller && product.seller.status !== "APPROVED";
+    if (!product || !product.isActive || sellerHidden) return res.status(404).json({ error: "Product not found" });
+    if (product.seller) delete product.seller.status;
     res.json(product);
   } catch (err) {
     next(err);
@@ -128,4 +170,4 @@ async function deleteProduct(req, res, next) {
   }
 }
 
-module.exports = { listProducts, getProduct, createProduct, updateProduct, deleteProduct };
+module.exports = { VISIBLE_PRODUCT, sanitizeProductInput, listProducts, getProduct, createProduct, updateProduct, deleteProduct };
